@@ -38,3 +38,15 @@ jobs:
         run: npx electron-builder --win --x64 --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload stable.yml for Legacy Client Compatibility
+        if: success()
+        shell: pwsh
+        run: |
+          if (Test-Path dist/latest.yml) {
+            Copy-Item dist/latest.yml dist/stable.yml
+            gh release upload ${{ github.ref_name }} dist/stable.yml --clobber
+          }
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

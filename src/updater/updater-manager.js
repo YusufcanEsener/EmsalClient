@@ -46,7 +46,7 @@ class UpdaterManager extends EventEmitter {
         // Güncelleme kanalı ayarı
         const settings = settingsStore.get()
         const channel = settings.updates.channel || 'stable'
-        autoUpdater.channel = channel
+        autoUpdater.channel = channel === 'beta' ? 'beta' : null
         autoUpdater.allowPrerelease = (channel === 'beta')
 
         // Loglama yönlendirmesi
@@ -156,7 +156,7 @@ class UpdaterManager extends EventEmitter {
         this._broadcast('updater:status', this.getState())
 
         if (autoUpdater && isPackaged) {
-            autoUpdater.channel = channel
+            autoUpdater.channel = channel === 'beta' ? 'beta' : null
             autoUpdater.allowPrerelease = (channel === 'beta')
             try {
                 const result = await autoUpdater.checkForUpdates()
