@@ -83,7 +83,7 @@
       "shortcutName": "EmsalClient"
     },
     "portable": {
-      "artifactName": "${productName}-portable.exe"
+      "artifactName": "${productName}.exe"
     }
   }
 }

@@ -56,7 +56,7 @@ Arı kovanlarındaki bal doluluğunu gerçek zamanlı izler, doluluk oranı **%8
 
 ### 1. Hazır `.exe` İle Başlatma
 1. [Releases](https://github.com/YusufcanEsener/EmsalClient/releases) sayfasından en son sürümü indirin:
-   - **`EmsalClient-portable.exe`**: Kurulum gerektirmez, doğrudan çift tıklayıp çalıştırabilirsiniz.
+   - **`EmsalClient.exe`**: Kurulum gerektirmez, doğrudan çift tıklayıp çalıştırabilirsiniz (Portable).
    - **`EmsalClient Setup 1.0.0.exe`**: Masaüstü ve başlat menüsü kısayolları oluşturan kurulumlu sürüm.
 2. Uygulamayı açın, profil ayarlarınızı yapılandırın ve **"Başlat"** butonuna basın.
 
