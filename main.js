@@ -122,13 +122,20 @@ function unicodeKarakterleriNormallestir(str) {
 function turkceKarakterleriDuzelt(str) {
     if (!str) return ''
     return str
-        .toLowerCase()
-        .replace(/ğ/g, 'g')
-        .replace(/ü/g, 'u')
-        .replace(/ş/g, 's')
+        .replace(/İ/g, 'i')
+        .replace(/I/g, 'i')
         .replace(/ı/g, 'i')
+        .replace(/Ğ/g, 'g')
+        .replace(/ğ/g, 'g')
+        .replace(/Ü/g, 'u')
+        .replace(/ü/g, 'u')
+        .replace(/Ş/g, 's')
+        .replace(/ş/g, 's')
+        .replace(/Ö/g, 'o')
         .replace(/ö/g, 'o')
+        .replace(/Ç/g, 'c')
         .replace(/ç/g, 'c')
+        .toLowerCase()
 }
 
 // Minecraft renk kodlarını (§a, &e vb.) temizler, küçük Unicode harflerini ve Türkçe harfleri düzeltir
@@ -324,9 +331,177 @@ let yenidenBaglanTimer = null
 let kullaniciDurdurdu = true   // Başlangıçta bot durdurulmuş durumda bekler (Electron açılınca otomatik başlamaz)
 let stdinDinleniyor = false
 
+let girisBasarili = false
+let skyblockGecisTimer = null
+let loginFallbackTimer = null
+
 // Sağ taraftaki tablodan (Scoreboard) anlık sunucu bilgisi takibi
 let mevcutSunucu = 'Durduruldu' // 'Skyblock' | 'Lobide' | 'Bağlanıyor...' | 'Durduruldu'
 let scoreboardBaslik = ''       // Tablo ilk satırı/başlığı (Örn: 'AESIR SKYBLOCK' veya 'AESIR LOBI')
+
+function girisMesajiMi(msg, temizMsg) {
+    if (!msg) return false
+    const norm = (temizMsg || metniTemizle(msg).toLowerCase()).replace(/[^a-z0-9]/g, ' ')
+    return (
+        (norm.includes('giris') && norm.includes('basari')) ||
+        (norm.includes('basari') && norm.includes('giris')) ||
+        norm.includes('login success') ||
+        norm.includes('successfully logged') ||
+        norm.includes('succes') ||
+        norm.includes('sifre dogru') ||
+        norm.includes('giris yapildi') ||
+        msg.includes('Giriş başarılı') ||
+        msg.includes('Giriş Başarılı') ||
+        msg.includes('Başarıyla') ||
+        msg.includes('Başarıyla giriş yaptınız')
+    )
+}
+
+function skyblockMesajiMi(msg, temizMsg) {
+    if (!msg) return false
+    const norm = (temizMsg || metniTemizle(msg).toLowerCase()).replace(/[^a-z0-9]/g, ' ')
+    const kullanici = (AYARLAR.KULLANICI_ADI || '').toLowerCase()
+    return (
+        msg.includes(`[+] ${AYARLAR.KULLANICI_ADI}`) ||
+        (kullanici && norm.includes(kullanici) && norm.includes('katildi')) ||
+        norm.includes('rutbe atlayabilirsin') ||
+        (norm.includes('aesir skyblock') && !norm.includes('youtube')) ||
+        norm.includes('skyblock sunucusuna aktarildin') ||
+        norm.includes('skyblock sunucusuna baglanildi') ||
+        (norm.includes('skyblock') && norm.includes('hos geldin'))
+    )
+}
+
+function skyblockaGecisBaslat(kaynak = 'Bilinmiyor') {
+    if (inSkyblock || adada) return
+    if (girisBasarili && skyblockGecisTimer) return
+
+    girisBasarili = true
+    inLobby = true
+    if (loginFallbackTimer) {
+        clearTimeout(loginFallbackTimer)
+        loginFallbackTimer = null
+    }
+    if (mevcutSunucu !== 'Skyblock') {
+        mevcutSunucu = 'Lobide'
+        if (!scoreboardBaslik) scoreboardBaslik = 'AESIR LOBI'
+        botEvents.emit('sunucuGuncellendi', { mevcutSunucu, scoreboardBaslik })
+        botEvents.emit('durum', durumAl())
+    }
+    console.log(`[DURUM] Giriş başarılı (${kaynak})! 2.5 saniye sonra Skyblock sırasına giriliyor...`)
+
+    if (skyblockGecisTimer) clearTimeout(skyblockGecisTimer)
+    skyblockGecisTimer = setTimeout(() => {
+        if (!bot || inSkyblock || adada) return
+        console.log('[İŞLEM] /gir skyblock-spawn gönderiliyor...')
+        bot.chat('/gir skyblock-spawn')
+
+        // Eğer 6 saniye içinde Skyblock sunucusuna aktarılmazsa tekrar dene
+        if (skyblockGecisTimer) clearTimeout(skyblockGecisTimer)
+        skyblockGecisTimer = setTimeout(() => {
+            if (!bot || inSkyblock || adada) return
+            console.log('[İŞLEM] Skyblock bağlantısı henüz onaylanmadı, tekrar /gir skyblock-spawn deneniyor...')
+            bot.chat('/gir skyblock-spawn')
+        }, 6000)
+    }, 2500)
+}
+
+function skyblockaGecildiKontrol(kaynak = 'Bilinmiyor') {
+    if (inSkyblock) return
+    inSkyblock = true
+    inLobby = true
+    girisBasarili = true
+
+    if (skyblockGecisTimer) {
+        clearTimeout(skyblockGecisTimer)
+        skyblockGecisTimer = null
+    }
+    if (loginFallbackTimer) {
+        clearTimeout(loginFallbackTimer)
+        loginFallbackTimer = null
+    }
+
+    mevcutSunucu = 'Skyblock'
+    if (!scoreboardBaslik) scoreboardBaslik = 'AESIR SKYBLOCK'
+    botEvents.emit('sunucuGuncellendi', { mevcutSunucu, scoreboardBaslik })
+    botEvents.emit('durum', durumAl())
+    console.log(`[DURUM] Skyblock sunucusuna başarıyla giriş yapıldı (${kaynak})! 3 saniye sonra adaya gidiliyor...`)
+
+    setTimeout(adayaGit, 3000)
+}
+
+function adayaGit() {
+    if (!bot || adada || isGoGonderildi) return
+    isGoGonderildi = true
+    const adaKomutu = AYARLAR.ADA_SAHIBI ? `/is go ${AYARLAR.ADA_SAHIBI}` : '/is go'
+    console.log(`[İŞLEM] ${adaKomutu} gönderiliyor...`)
+    bot.chat(adaKomutu)
+
+    // /is go gönderildikten 5 saniye sonra adaya ulaşıldığını varsayıp kontrolü başlat
+    if (isGoRetryTimeout) clearTimeout(isGoRetryTimeout)
+    isGoRetryTimeout = setTimeout(() => {
+        if (!adada) {
+            console.log('[BİLGİ] Ada geçiş süresi tamamlandı, ada modu başlatılıyor...')
+            adayaUlasildi()
+        }
+    }, 5000)
+}
+
+function adayaUlasildi() {
+    if (adada) return
+    adada = true
+    inSkyblock = true
+    inLobby = true
+    girisBasarili = true
+
+    if (isGoRetryTimeout) {
+        clearTimeout(isGoRetryTimeout)
+        isGoRetryTimeout = null
+    }
+    if (skyblockGecisTimer) {
+        clearTimeout(skyblockGecisTimer)
+        skyblockGecisTimer = null
+    }
+    if (loginFallbackTimer) {
+        clearTimeout(loginFallbackTimer)
+        loginFallbackTimer = null
+    }
+
+    mevcutSunucu = 'Skyblock'
+    if (!scoreboardBaslik) scoreboardBaslik = 'AESIR SKYBLOCK'
+
+    console.log('[BAŞARILI] Bot adaya ulaştı! Mevcut Sunucu: Skyblock')
+    botEvents.emit('sunucuGuncellendi', { mevcutSunucu, scoreboardBaslik })
+    botEvents.emit('durum', { durum: 'Adada (Hazır)', adada: true, calisiyor: true, mevcutSunucu, scoreboardBaslik })
+    botEvents.emit('envanter', envanterBilgisiAl())
+
+    // Pathfinder hareket ayarlarını yap (adalarda blok kırmasın veya blok koymasın)
+    if (bot && bot.pathfinder) {
+        const hareketler = new Movements(bot)
+        hareketler.canDig = false           // Adadaki blokları kırmasın
+        hareketler.allow1by1towers = false  // Blok koyup yukarı çıkmasın
+        bot.pathfinder.setMovements(hareketler)
+    }
+
+    // Botun adadaki durduğu noktayı AFK konumu olarak kaydet
+    if (bot && bot.entity) {
+        afkKonumu = bot.entity.position.clone()
+        console.log(`[BİLGİ] AFK konumu kaydedildi: X=${Math.round(afkKonumu.x)}, Y=${Math.round(afkKonumu.y)}, Z=${Math.round(afkKonumu.z)}`)
+    }
+
+    // İlk kontrolü 2 saniye sonra yap
+    setTimeout(otomatikMinyonGorevi, 2000)
+
+    // Sonrasında her belirtilen saniyede bir tekrarla
+    if (kontrolZamanlayici) clearInterval(kontrolZamanlayici)
+    kontrolZamanlayici = setInterval(otomatikMinyonGorevi, AYARLAR.KONTROL_ARALIGI_SANIYE * 1000)
+    console.log(`[DÖNGÜ] Minyon kontrol sistemi aktif! Her ${AYARLAR.KONTROL_ARALIGI_SANIYE} saniyede bir kontrol edilecek. (Test Modu: ${AYARLAR.SADECE_BILGI_MODU ? 'AÇIK - Eşya alınmaz' : 'KAPALI - Toplar'})`)
+    console.log(`[İPUCU] Konsolda:`)
+    console.log(`  - ENTER              : Minyon kontrolünü hemen tetikler`)
+    console.log(`  - json               : Tüm minyonları JSON formatında gösterir`)
+    console.log(`  - bot.oduncuminyon.konum : İstediğin özelliğin anlık değerini ekrana basar`)
+    console.log(`  - Oyundan '!json'    : Minyon JSON özetini verir\n`)
+}
 
 function parseScoreboardMetni(raw) {
     if (!raw) return ''
@@ -347,10 +522,9 @@ function kontrolEtScoreboard(baslik, ekMaddeler = []) {
 
     if (tumMetin.includes('SKYBLOCK') || tumMetin.includes('ADAN')) {
         yeniSunucu = 'Skyblock'
-        inSkyblock = true
+        skyblockaGecildiKontrol('Scoreboard')
     } else if (tumMetin.includes('LOBI') || tumMetin.includes('LOBİ')) {
         yeniSunucu = 'Lobide'
-        inLobby = true
     }
 
     if (yeniSunucu && yeniSunucu !== mevcutSunucu) {
@@ -1382,6 +1556,14 @@ function createBot() {
         clearTimeout(isGoRetryTimeout)
         isGoRetryTimeout = null
     }
+    if (skyblockGecisTimer) {
+        clearTimeout(skyblockGecisTimer)
+        skyblockGecisTimer = null
+    }
+    if (loginFallbackTimer) {
+        clearTimeout(loginFallbackTimer)
+        loginFallbackTimer = null
+    }
     if (kontrolZamanlayici) {
         clearInterval(kontrolZamanlayici)
         kontrolZamanlayici = null
@@ -1392,6 +1574,7 @@ function createBot() {
     isGoGonderildi = false
     adada = false
     islemde = false
+    girisBasarili = false
 
     // Mini REST API sunucusunu başlat (http://localhost:3000/api/minyonlar)
     apiSunucusunuBaslat()
@@ -1410,6 +1593,7 @@ function createBot() {
     inSkyblock = false
     isGoGonderildi = false
     adada = false
+    girisBasarili = false
     mevcutSunucu = 'Bağlanıyor...'
     scoreboardBaslik = ''
 
@@ -1482,42 +1666,6 @@ function createBot() {
         botEvents.emit('envanter', envanterBilgisiAl())
     })
 
-    // Adaya ulaşıldığında sistemi başlatan fonksiyon
-    function adayaUlasildi() {
-        if (adada) return
-        adada = true
-        mevcutSunucu = 'Skyblock'
-        if (!scoreboardBaslik) scoreboardBaslik = 'AESIR SKYBLOCK'
-
-        console.log('[BAŞARILI] Bot adaya ulaştı! Mevcut Sunucu: Skyblock')
-        botEvents.emit('sunucuGuncellendi', { mevcutSunucu, scoreboardBaslik })
-        botEvents.emit('durum', { durum: 'Adada (Hazır)', adada: true, calisiyor: true, mevcutSunucu, scoreboardBaslik })
-        botEvents.emit('envanter', envanterBilgisiAl())
-
-        // Pathfinder hareket ayarlarını yap (adalarda blok kırmasın veya blok koymasın)
-        const hareketler = new Movements(bot)
-        hareketler.canDig = false           // Adadaki blokları kırmasın
-        hareketler.allow1by1towers = false  // Blok koyup yukarı çıkmasın
-        bot.pathfinder.setMovements(hareketler)
-
-        // Botun adadaki durduğu noktayı AFK konumu olarak kaydet
-        afkKonumu = bot.entity.position.clone()
-        console.log(`[BİLGİ] AFK konumu kaydedildi: X=${Math.round(afkKonumu.x)}, Y=${Math.round(afkKonumu.y)}, Z=${Math.round(afkKonumu.z)}`)
-
-        // İlk kontrolü 2 saniye sonra yap
-        setTimeout(otomatikMinyonGorevi, 2000)
-
-        // Sonrasında her belirtilen saniyede bir tekrarla
-        if (kontrolZamanlayici) clearInterval(kontrolZamanlayici)
-        kontrolZamanlayici = setInterval(otomatikMinyonGorevi, AYARLAR.KONTROL_ARALIGI_SANIYE * 1000)
-        console.log(`[DÖNGÜ] Minyon kontrol sistemi aktif! Her ${AYARLAR.KONTROL_ARALIGI_SANIYE} saniyede bir kontrol edilecek. (Test Modu: ${AYARLAR.SADECE_BILGI_MODU ? 'AÇIK - Eşya alınmaz' : 'KAPALI - Toplar'})`)
-        console.log(`[İPUCU] Konsolda:`)
-        console.log(`  - ENTER              : Minyon kontrolünü hemen tetikler`)
-        console.log(`  - json               : Tüm minyonları JSON formatında gösterir`)
-        console.log(`  - bot.oduncuminyon.konum : İstediğin özelliğin anlık değerini ekrana basar`)
-        console.log(`  - Oyundan '!json'    : Minyon JSON özetini verir\n`)
-    }
-
     bot.once('spawn', () => {
         console.log('[DURUM] Giriş sunucusuna bağlanıldı.')
         envanterDinleyicileriniBagla()
@@ -1526,8 +1674,19 @@ function createBot() {
             if (AYARLAR.SIFRE && AYARLAR.SIFRE.trim() !== '') {
                 console.log('[İŞLEM] Şifre giriliyor...')
                 bot.chat(`/login ${AYARLAR.SIFRE}`)
+
+                // Güvenlik zamanlayıcısı: 4.5 saniye içinde giriş mesajı algılanamazsa
+                // veya paket kaçırılırsa Skyblock geçişini otomatik tetikle (timeout'u kesinlikle önler)
+                if (loginFallbackTimer) clearTimeout(loginFallbackTimer)
+                loginFallbackTimer = setTimeout(() => {
+                    if (!girisBasarili && !inSkyblock && !adada) {
+                        console.log('[BİLGİ] Giriş zamanlayıcısı devrede: Skyblock geçişi başlatılıyor...')
+                        skyblockaGecisBaslat('Zamanlayıcı (Fallback)')
+                    }
+                }, 4500)
             } else {
                 console.log('[BİLGİ] Şifre tanımlanmadığı için /login adımı atlandı.')
+                skyblockaGecisBaslat('Şifresiz')
             }
         }, 1200)
     })
@@ -1553,55 +1712,22 @@ function createBot() {
         }
 
         // 1. Şifre doğrulandıktan sonra lobiye geçişi bekle ve Skyblock'a bağlan
-        if (!inLobby && (
-            temizMsg.includes('basariyla giris') ||
-            temizMsg.includes('giris basarili') ||
-            temizMsg.includes('login succes') ||
-            msg.includes('Başarıyla giriş yaptınız') ||
-            msg.includes('Giriş başarılı')
-        )) {
-            inLobby = true
-            if (mevcutSunucu !== 'Skyblock') {
-                mevcutSunucu = 'Lobide'
-                if (!scoreboardBaslik) scoreboardBaslik = 'AESIR LOBI'
-                botEvents.emit('sunucuGuncellendi', { mevcutSunucu, scoreboardBaslik })
-                botEvents.emit('durum', durumAl())
-            }
-            console.log('[DURUM] Giriş başarılı! 4 saniye sonra Skyblock sırasına giriliyor...')
-            setTimeout(() => {
-                console.log('[İŞLEM] /gir skyblock-spawn gönderiliyor...')
-                bot.chat('/gir skyblock-spawn')
-            }, 4000)
+        if (!girisBasarili && !inSkyblock && girisMesajiMi(msg, temizMsg)) {
+            skyblockaGecisBaslat('Mesaj: ' + msg)
         }
 
         // 2. Skyblock sunucusuna bağlanıldığını algıla ve adaya git
-        if (inLobby && !inSkyblock && (
-            msg.includes(`[+] ${AYARLAR.KULLANICI_ADI}`) ||
-            temizMsg.includes('rutbe atlayabilirsin') ||
-            (temizMsg.includes('aesir skyblock') && !temizMsg.includes('youtube'))
-        )) {
-            inSkyblock = true
-            mevcutSunucu = 'Skyblock'
-            if (!scoreboardBaslik) scoreboardBaslik = 'AESIR SKYBLOCK'
-            botEvents.emit('sunucuGuncellendi', { mevcutSunucu, scoreboardBaslik })
-            botEvents.emit('durum', durumAl())
-            console.log('[DURUM] Skyblock sunucusuna başarıyla giriş yapıldı! 4 saniye sonra adaya gidiliyor...')
-            setTimeout(() => {
-                isGoGonderildi = true
-                const adaKomutu = AYARLAR.ADA_SAHIBI ? `/is go ${AYARLAR.ADA_SAHIBI}` : '/is go'
-                console.log(`[İŞLEM] ${adaKomutu} gönderiliyor...`)
-                bot.chat(adaKomutu)
-
-                // /is go gönderildikten 5 saniye sonra adaya ulaşıldığını varsayıp kontrolü başlat
-                if (isGoRetryTimeout) clearTimeout(isGoRetryTimeout)
-                isGoRetryTimeout = setTimeout(() => {
-                    adayaUlasildi()
-                }, 5000)
-            }, 4000)
+        if (!inSkyblock && skyblockMesajiMi(msg, temizMsg)) {
+            skyblockaGecildiKontrol('Mesaj: ' + msg)
         }
 
         // 3. Adaya aktarılma durumu mesajı gelirse (/is go gönderildikten sonra)
-        if (isGoGonderildi && !adada && (temizMsg.includes('adana') || temizMsg.includes('adadasin') || temizMsg.includes('isinlandin'))) {
+        if (isGoGonderildi && !adada && (
+            temizMsg.includes('adana') ||
+            temizMsg.includes('adadasin') ||
+            temizMsg.includes('isinlandin') ||
+            temizMsg.includes('adadasiniz')
+        )) {
             if (isGoRetryTimeout) clearTimeout(isGoRetryTimeout)
             console.log('[DURUM] Adaya ışınlanma mesajı alındı, ada modu başlatılıyor...')
             setTimeout(adayaUlasildi, 2000)
@@ -1612,11 +1738,32 @@ function createBot() {
             console.log('[UYARI] Ada sunucusu dolu! 10 saniye sonra tekrar /is go denenecek...')
             if (isGoRetryTimeout) clearTimeout(isGoRetryTimeout)
             isGoRetryTimeout = setTimeout(() => {
-                const adaKomutu = AYARLAR.ADA_SAHIBI ? `/is go ${AYARLAR.ADA_SAHIBI}` : '/is go'
-                console.log(`[İŞLEM] Tekrar ${adaKomutu} deneniyor...`)
-                bot.chat(adaKomutu)
-                setTimeout(adayaUlasildi, 5000)
+                isGoGonderildi = false
+                adayaGit()
             }, 10000)
+        }
+    })
+
+    bot.on('title', (rawTitle) => {
+        try {
+            const metin = metniTemizle(typeof rawTitle === 'string' ? rawTitle : jsonToText(rawTitle))
+            if (!girisBasarili && !inSkyblock && girisMesajiMi(metin)) {
+                skyblockaGecisBaslat('Title: ' + metin)
+            }
+        } catch (e) { }
+    })
+
+    bot.on('respawn', () => {
+        envanterDinleyicileriniBagla()
+        if (girisBasarili && !inSkyblock) {
+            setTimeout(() => {
+                if (!inSkyblock && bot && bot.scoreboard) {
+                    const sb = bot.scoreboard['1'] || bot.scoreboard.sidebar || (bot.scoreboards && Object.values(bot.scoreboards)[0])
+                    if (sb && sb.title) {
+                        kontrolEtScoreboard(sb.title)
+                    }
+                }
+            }, 1500)
         }
     })
 
@@ -1635,12 +1782,24 @@ function createBot() {
             clearTimeout(isGoRetryTimeout)
             isGoRetryTimeout = null
         }
+        if (skyblockGecisTimer) {
+            clearTimeout(skyblockGecisTimer)
+            skyblockGecisTimer = null
+        }
+        if (loginFallbackTimer) {
+            clearTimeout(loginFallbackTimer)
+            loginFallbackTimer = null
+        }
         if (kontrolZamanlayici) {
             clearInterval(kontrolZamanlayici)
             kontrolZamanlayici = null
         }
         adada = false
         islemde = false
+        girisBasarili = false
+        inSkyblock = false
+        inLobby = false
+        isGoGonderildi = false
 
         if (kullaniciDurdurdu) {
             bot = null
@@ -1679,6 +1838,14 @@ function botDurdur() {
         clearTimeout(isGoRetryTimeout)
         isGoRetryTimeout = null
     }
+    if (skyblockGecisTimer) {
+        clearTimeout(skyblockGecisTimer)
+        skyblockGecisTimer = null
+    }
+    if (loginFallbackTimer) {
+        clearTimeout(loginFallbackTimer)
+        loginFallbackTimer = null
+    }
     if (kontrolZamanlayici) {
         clearInterval(kontrolZamanlayici)
         kontrolZamanlayici = null
@@ -1689,6 +1856,7 @@ function botDurdur() {
     isGoGonderildi = false
     adada = false
     islemde = false
+    girisBasarili = false
     mevcutSunucu = 'Durduruldu'
     scoreboardBaslik = ''
 
