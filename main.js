@@ -21,10 +21,10 @@ console.log = function (...args) {
     const logStr = args.join(' ')
     // Saniyede bir gelen HUD durum paketlerini (Can, Mana, AP, Yetenek) konsola basma
     if (
-        logStr.includes('⛁') || 
-        logStr.includes('⚗') || 
-        logStr.includes('❤ Can') || 
-        logStr.includes('🔥 Yetenek') || 
+        logStr.includes('⛁') ||
+        logStr.includes('⚗') ||
+        logStr.includes('❤ Can') ||
+        logStr.includes('🔥 Yetenek') ||
         (logStr.includes('Can') && logStr.includes('Mana') && logStr.includes('AP'))
     ) {
         return
@@ -382,13 +382,8 @@ function skyblockaGecisBaslat(kaynak = 'Bilinmiyor') {
         clearTimeout(loginFallbackTimer)
         loginFallbackTimer = null
     }
-    if (mevcutSunucu !== 'Skyblock') {
-        mevcutSunucu = 'Lobide'
-        if (!scoreboardBaslik) scoreboardBaslik = 'AESIR LOBI'
-        botEvents.emit('sunucuGuncellendi', { mevcutSunucu, scoreboardBaslik })
-        botEvents.emit('durum', durumAl())
-    }
-    console.log(`[DURUM] Giriş başarılı (${kaynak})! 2.5 saniye sonra Skyblock sırasına giriliyor...`)
+
+    console.log(`[DURUM] Giriş başarılı (${kaynak})! 2 saniye sonra Skyblock sırasına giriliyor...`)
 
     if (skyblockGecisTimer) clearTimeout(skyblockGecisTimer)
     skyblockGecisTimer = setTimeout(() => {
@@ -396,14 +391,25 @@ function skyblockaGecisBaslat(kaynak = 'Bilinmiyor') {
         console.log('[İŞLEM] /gir skyblock-spawn gönderiliyor...')
         bot.chat('/gir skyblock-spawn')
 
-        // Eğer 6 saniye içinde Skyblock sunucusuna aktarılmazsa tekrar dene
+        // Eğer 5 saniye içinde Skyblock sunucusuna aktarılmazsa tekrar dene
         if (skyblockGecisTimer) clearTimeout(skyblockGecisTimer)
         skyblockGecisTimer = setTimeout(() => {
             if (!bot || inSkyblock || adada) return
             console.log('[İŞLEM] Skyblock bağlantısı henüz onaylanmadı, tekrar /gir skyblock-spawn deneniyor...')
             bot.chat('/gir skyblock-spawn')
-        }, 6000)
-    }, 2500)
+        }, 5000)
+    }, 2000)
+
+    try {
+        if (mevcutSunucu !== 'Skyblock') {
+            mevcutSunucu = 'Lobide'
+            if (!scoreboardBaslik) scoreboardBaslik = 'AESIR LOBI'
+            botEvents.emit('sunucuGuncellendi', { mevcutSunucu, scoreboardBaslik })
+            if (typeof durumAl === 'function') {
+                botEvents.emit('durum', durumAl())
+            }
+        }
+    } catch (e) { }
 }
 
 function skyblockaGecildiKontrol(kaynak = 'Bilinmiyor') {
@@ -423,11 +429,16 @@ function skyblockaGecildiKontrol(kaynak = 'Bilinmiyor') {
 
     mevcutSunucu = 'Skyblock'
     if (!scoreboardBaslik) scoreboardBaslik = 'AESIR SKYBLOCK'
-    botEvents.emit('sunucuGuncellendi', { mevcutSunucu, scoreboardBaslik })
-    botEvents.emit('durum', durumAl())
-    console.log(`[DURUM] Skyblock sunucusuna başarıyla giriş yapıldı (${kaynak})! 3 saniye sonra adaya gidiliyor...`)
 
+    console.log(`[DURUM] Skyblock sunucusuna başarıyla giriş yapıldı (${kaynak})! 3 saniye sonra adaya gidiliyor...`)
     setTimeout(adayaGit, 3000)
+
+    try {
+        botEvents.emit('sunucuGuncellendi', { mevcutSunucu, scoreboardBaslik })
+        if (typeof durumAl === 'function') {
+            botEvents.emit('durum', durumAl())
+        }
+    } catch (e) { }
 }
 
 function adayaGit() {
@@ -522,7 +533,9 @@ function kontrolEtScoreboard(baslik, ekMaddeler = []) {
 
     if (tumMetin.includes('SKYBLOCK') || tumMetin.includes('ADAN')) {
         yeniSunucu = 'Skyblock'
-        skyblockaGecildiKontrol('Scoreboard')
+        if (girisBasarili || tumMetin.includes('ADAN')) {
+            skyblockaGecildiKontrol('Scoreboard')
+        }
     } else if (tumMetin.includes('LOBI') || tumMetin.includes('LOBİ')) {
         yeniSunucu = 'Lobide'
     }
@@ -530,8 +543,12 @@ function kontrolEtScoreboard(baslik, ekMaddeler = []) {
     if (yeniSunucu && yeniSunucu !== mevcutSunucu) {
         mevcutSunucu = yeniSunucu
         console.log(`[SCOREBOARD] Tablodan algılandı: Mevcut Sunucu: ${mevcutSunucu} (İlk Satır: "${scoreboardBaslik}")`)
-        botEvents.emit('sunucuGuncellendi', { mevcutSunucu, scoreboardBaslik })
-        botEvents.emit('durum', durumAl())
+        try {
+            botEvents.emit('sunucuGuncellendi', { mevcutSunucu, scoreboardBaslik })
+            if (typeof durumAl === 'function') {
+                botEvents.emit('durum', durumAl())
+            }
+        } catch (e) { }
     }
 }
 
@@ -1928,6 +1945,59 @@ async function tekilMinyonTopla(minyonIsmi) {
 // ==========================================
 // 5. ELECTRON VE DIŞ KONTROL FONKSİYONLARI
 // ==========================================
+function durumAl() {
+    let minyonlar = bot?.minyonlar || {}
+    if (Object.keys(minyonlar).length === 0 && fs.existsSync(AYARLAR.JSON_DOSYA_YOLU)) {
+        try {
+            const dosya = JSON.parse(fs.readFileSync(AYARLAR.JSON_DOSYA_YOLU, 'utf8'))
+            if (dosya && dosya.minyonlar) minyonlar = dosya.minyonlar
+        } catch (e) { }
+    }
+    let kovanlar = bot?.kovanlar || {}
+    if (Object.keys(kovanlar).length === 0 && fs.existsSync(AYARLAR.KOVAN_JSON_DOSYA_YOLU)) {
+        try {
+            const dosya = JSON.parse(fs.readFileSync(AYARLAR.KOVAN_JSON_DOSYA_YOLU, 'utf8'))
+            if (dosya && dosya.kovanlar) kovanlar = dosya.kovanlar
+        } catch (e) { }
+    }
+    if (bot && bot.scoreboard) {
+        const sb = bot.scoreboard['1'] || bot.scoreboard.sidebar || (bot.scoreboards && Object.values(bot.scoreboards)[0])
+        if (sb && sb.title) {
+            kontrolEtScoreboard(sb.title)
+        }
+    }
+    const calisiyor = Boolean(bot && !kullaniciDurdurdu)
+    let durumMetni = 'Durduruldu'
+    if (calisiyor) {
+        if (adada) {
+            durumMetni = islemde ? 'İşlem Yapıyor' : 'Adada (Hazır)'
+        } else if (mevcutSunucu === 'Lobide') {
+            durumMetni = 'Lobide'
+        } else if (mevcutSunucu === 'Skyblock') {
+            durumMetni = 'Skyblock (Bağlandı)'
+        } else {
+            durumMetni = 'Bağlanıyor...'
+        }
+    }
+    return {
+        botAdi: AYARLAR.KULLANICI_ADI,
+        sunucu: AYARLAR.SUNUCU_IP,
+        mevcutSunucu: mevcutSunucu,
+        scoreboardBaslik: scoreboardBaslik,
+        testModu: AYARLAR.SADECE_BILGI_MODU,
+        hedefYuzde: AYARLAR.HEDEF_DOLULUK_YUZDESI,
+        kontrolAraligi: AYARLAR.KONTROL_ARALIGI_SANIYE,
+        sandikKonumu: AYARLAR.SANDIK_KONUMU,
+        minyonlar: minyonlar,
+        kovanlar: kovanlar,
+        envanter: envanterBilgisiAl(),
+        islemde: islemde,
+        calisiyor: calisiyor,
+        adada: Boolean(adada),
+        durum: durumMetni
+    }
+}
+
 const botKontrol = {
     createBot,
     baslat: botBaslat,
@@ -2130,58 +2200,7 @@ const botKontrol = {
         }
         return AYARLAR.HEDEF_DOLULUK_YUZDESI
     },
-    durumAl: () => {
-        let minyonlar = bot?.minyonlar || {}
-        if (Object.keys(minyonlar).length === 0 && fs.existsSync(AYARLAR.JSON_DOSYA_YOLU)) {
-            try {
-                const dosya = JSON.parse(fs.readFileSync(AYARLAR.JSON_DOSYA_YOLU, 'utf8'))
-                if (dosya && dosya.minyonlar) minyonlar = dosya.minyonlar
-            } catch (e) { }
-        }
-        let kovanlar = bot?.kovanlar || {}
-        if (Object.keys(kovanlar).length === 0 && fs.existsSync(AYARLAR.KOVAN_JSON_DOSYA_YOLU)) {
-            try {
-                const dosya = JSON.parse(fs.readFileSync(AYARLAR.KOVAN_JSON_DOSYA_YOLU, 'utf8'))
-                if (dosya && dosya.kovanlar) kovanlar = dosya.kovanlar
-            } catch (e) { }
-        }
-        if (bot && bot.scoreboard) {
-            const sb = bot.scoreboard['1'] || bot.scoreboard.sidebar || (bot.scoreboards && Object.values(bot.scoreboards)[0])
-            if (sb && sb.title) {
-                kontrolEtScoreboard(sb.title)
-            }
-        }
-        const calisiyor = Boolean(bot && !kullaniciDurdurdu)
-        let durumMetni = 'Durduruldu'
-        if (calisiyor) {
-            if (adada) {
-                durumMetni = islemde ? 'İşlem Yapıyor' : 'Adada (Hazır)'
-            } else if (mevcutSunucu === 'Lobide') {
-                durumMetni = 'Lobide'
-            } else if (mevcutSunucu === 'Skyblock') {
-                durumMetni = 'Skyblock (Bağlandı)'
-            } else {
-                durumMetni = 'Bağlanıyor...'
-            }
-        }
-        return {
-            botAdi: AYARLAR.KULLANICI_ADI,
-            sunucu: AYARLAR.SUNUCU_IP,
-            mevcutSunucu: mevcutSunucu,
-            scoreboardBaslik: scoreboardBaslik,
-            testModu: AYARLAR.SADECE_BILGI_MODU,
-            hedefYuzde: AYARLAR.HEDEF_DOLULUK_YUZDESI,
-            kontrolAraligi: AYARLAR.KONTROL_ARALIGI_SANIYE,
-            sandikKonumu: AYARLAR.SANDIK_KONUMU,
-            minyonlar: minyonlar,
-            kovanlar: kovanlar,
-            envanter: envanterBilgisiAl(),
-            islemde: islemde,
-            calisiyor: calisiyor,
-            adada: Boolean(adada),
-            durum: durumMetni
-        }
-    }
+    durumAl: durumAl
 }
 
 // Eğer doğrudan `node main.js` ile başlatıldıysa botu çalıştır
