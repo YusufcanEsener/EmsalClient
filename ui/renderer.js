@@ -87,6 +87,42 @@ let aktifModalJsonTab = 'minyonlar'
 const elBtnMinimize = document.getElementById('btnMinimize')
 const elBtnMaximize = document.getElementById('btnMaximize')
 const elBtnClose = document.getElementById('btnClose')
+const elIconMaximize = document.getElementById('iconMaximize')
+
+if (elBtnMinimize) {
+    elBtnMinimize.addEventListener('click', () => {
+        if (window.api?.app?.minimize) window.api.app.minimize()
+        else if (window.electronAPI?.windowMinimize) window.electronAPI.windowMinimize()
+    })
+}
+
+if (elBtnMaximize) {
+    elBtnMaximize.addEventListener('click', () => {
+        if (window.api?.app?.maximize) window.api.app.maximize()
+        else if (window.electronAPI?.windowMaximize) window.electronAPI.windowMaximize()
+    })
+}
+
+if (elBtnClose) {
+    elBtnClose.addEventListener('click', () => {
+        if (window.api?.app?.close) window.api.app.close()
+        else if (window.electronAPI?.windowClose) window.electronAPI.windowClose()
+    })
+}
+
+if (window.api?.app?.onWindowState) {
+    window.api.app.onWindowState((state) => {
+        if (elIconMaximize) {
+            if (state && state.isMaximized) {
+                elIconMaximize.innerHTML = '<rect x="6" y="6" width="14" height="14" rx="2"></rect><path d="M4 14V4h10"></path>'
+                if (elBtnMaximize) elBtnMaximize.title = 'Önceki Boyuta Dön'
+            } else {
+                elIconMaximize.innerHTML = '<rect x="3" y="3" width="18" height="18" rx="2"></rect>'
+                if (elBtnMaximize) elBtnMaximize.title = 'Büyüt / Tam Ekran'
+            }
+        }
+    })
+}
 
 // ===================================================
 // LUCIDE ICONS HELPER (INLINE SVG - DIFFERENTIATED)

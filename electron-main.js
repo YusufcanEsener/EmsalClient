@@ -35,6 +35,21 @@ function createWindow() {
 
     mainWindow.loadFile(path.join(__dirname, 'ui', 'index.html'))
 
+    // Başlangıçta tam ekran aç (kullanıcı dilerse pencereyi küçültebilir)
+    mainWindow.maximize()
+
+    mainWindow.on('maximize', () => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('window:state-changed', { isMaximized: true })
+        }
+    })
+
+    mainWindow.on('unmaximize', () => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('window:state-changed', { isMaximized: false })
+        }
+    })
+
     // Updater ve Tray için pencere referansını bağla
     updaterManager.setMainWindow(mainWindow)
     trayManager.init(mainWindow, {

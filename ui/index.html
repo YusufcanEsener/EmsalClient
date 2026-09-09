@@ -43,10 +43,6 @@
                         <circle cx="12" cy="7" r="4"></circle>
                     </svg>
                     <span id="topbarProfileName">Varsayılan Bot</span>
-                </div>
-            </div>
-
-            <div class="topbar-center">
                 <!-- Uptime Timer -->
                 <div class="uptime-pill" title="Panel açık kalma süresi">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -70,17 +66,17 @@
                     <span class="metric-text" id="botDurumText">Durduruldu</span>
                 </div>
 
-                <div class="metric-pill">
+                <div class="metric-pill" id="minyonSayisiPill">
                     <span class="metric-label">Minyon:</span>
                     <span class="metric-val" id="toplamMinyonSayisi">0</span>
                 </div>
 
-                <div class="metric-pill">
+                <div class="metric-pill" id="kovanSayisiPill">
                     <span class="metric-label">Kovan:</span>
                     <span class="metric-val text-amber" id="toplamKovanSayisi">0</span>
                 </div>
 
-                <div class="metric-pill">
+                <div class="metric-pill" id="doluMinyonPill">
                     <span class="metric-label">Dolu:</span>
                     <span class="metric-val text-warning" id="doluMinyonSayisi">0</span>
                 </div>
@@ -98,28 +94,26 @@
                     </svg>
                     <span class="metric-val text-dim" id="sandikKonumText">Belirlenmedi</span>
                 </div>
+            </div>
 
-                <div class="topbar-divider"></div>
-
-                <!-- Window Controls (Custom Title Bar) -->
-                <div class="window-controls">
-                    <button class="win-btn" id="btnMinimize" title="Küçült" aria-label="Küçült">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-                            <path d="M5 12h14"></path>
-                        </svg>
-                    </button>
-                    <button class="win-btn" id="btnMaximize" title="Büyüt" aria-label="Büyüt">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="4" y="4" width="16" height="16" rx="2"></rect>
-                        </svg>
-                    </button>
-                    <button class="win-btn win-btn-close" id="btnClose" title="Kapat" aria-label="Kapat">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 6 6 18"></path>
-                            <path d="m6 6 12 12"></path>
-                        </svg>
-                    </button>
-                </div>
+            <!-- Window Controls (Always Anchored Right) -->
+            <div class="window-controls">
+                <button class="win-btn" id="btnMinimize" title="Küçült" aria-label="Küçült">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                        <path d="M5 12h14"></path>
+                    </svg>
+                </button>
+                <button class="win-btn win-btn-maximize" id="btnMaximize" title="Büyüt / Tam Ekran" aria-label="Büyüt">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" id="iconMaximize">
+                        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                    </svg>
+                </button>
+                <button class="win-btn win-btn-close" id="btnClose" title="Kapat" aria-label="Kapat">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6 6 18"></path>
+                        <path d="m6 6 12 12"></path>
+                    </svg>
+                </button>
             </div>
         </header>
 

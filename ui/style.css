@@ -87,24 +87,36 @@ body {
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border-subtle);
     border-radius: 0 0 var(--radius-md) var(--radius-md);
-    padding: 0 8px 0 12px;
-    height: 40px;
+    padding: 0 6px 0 12px;
+    height: 42px;
     flex-shrink: 0;
     -webkit-app-region: drag;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
 }
 
 .app-topbar button,
 .app-topbar input,
 .app-topbar label,
 .app-topbar select,
-.app-topbar .server-status-pill {
+.app-topbar .server-status-pill,
+.app-topbar .current-server-pill,
+.app-topbar .active-profile-pill,
+.app-topbar .uptime-pill,
+.app-topbar .metric-pill,
+.app-topbar .update-pill,
+.app-topbar .window-controls {
     -webkit-app-region: no-drag;
 }
 
 .topbar-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .app-brand {
@@ -158,6 +170,8 @@ body {
     padding: 3px 8px;
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-subtle);
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .status-indicator {
@@ -179,6 +193,7 @@ body {
     font-family: var(--font-mono);
     color: var(--text-muted);
     font-size: 11px;
+    white-space: nowrap;
 }
 
 /* Mevcut Sunucu (Scoreboard Tablosu) Pilli */
@@ -194,6 +209,8 @@ body {
     color: var(--text-secondary);
     -webkit-app-region: no-drag;
     transition: all 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .current-server-pill .current-server-label {
@@ -268,11 +285,28 @@ body {
     border-radius: var(--radius-xs);
 }
 
-/* Topbar Center (Uptime) */
-.topbar-center {
+/* Aktif Profil Pilli */
+.active-profile-pill {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    font-size: 11.5px;
+    padding: 3px 9px;
+    border-radius: var(--radius-sm);
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    color: #a5b4fc;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    -webkit-app-region: no-drag;
+}
+
+.active-profile-pill:hover {
+    background: rgba(99, 102, 241, 0.22);
+    border-color: rgba(99, 102, 241, 0.5);
+    color: #e0e7ff;
 }
 
 .uptime-pill {
@@ -287,6 +321,7 @@ body {
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-subtle);
     white-space: nowrap;
+    flex-shrink: 0;
     user-select: none;
 }
 
@@ -295,6 +330,10 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+    margin-left: auto;
     -webkit-app-region: no-drag;
 }
 
@@ -308,6 +347,8 @@ body {
     border-radius: var(--radius-sm);
     font-size: 11.5px;
     height: 26px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .metric-dot {
@@ -370,37 +411,48 @@ body {
 .window-controls {
     display: flex;
     align-items: center;
-    gap: 2px;
-    margin-left: 4px;
+    gap: 3px;
+    margin-left: 8px;
+    flex-shrink: 0;
+    -webkit-app-region: no-drag;
 }
 
 .win-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 26px;
-    border: none;
-    background: transparent;
-    color: var(--text-dim);
+    width: 32px;
+    height: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: #94a3b8;
     border-radius: var(--radius-xs);
     cursor: pointer;
-    transition: all 0.12s ease;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
 }
 
 .win-btn:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.win-btn-maximize:hover {
+    background: rgba(56, 189, 248, 0.25);
+    border-color: rgba(56, 189, 248, 0.5);
+    color: #38bdf8;
 }
 
 .win-btn-close:hover {
-    background: rgba(239, 68, 68, 0.25);
-    color: #f87171;
+    background: rgba(239, 68, 68, 0.45);
+    border-color: rgba(239, 68, 68, 0.7);
+    color: #ffffff;
 }
 
 /* ===================================================
    2. ACTION TOOLBAR (COMPACT SINGLE ROW)
-   =================================================== */
+   ================================================== */
 .action-toolbar {
     display: flex;
     justify-content: space-between;
@@ -408,15 +460,22 @@ body {
     background: var(--bg-surface);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
-    padding: 5px 12px;
-    height: 38px;
+    padding: 4px 10px;
+    height: 42px;
     flex-shrink: 0;
+    overflow-x: auto;
+    gap: 8px;
+}
+
+.action-toolbar::-webkit-scrollbar {
+    height: 3px;
 }
 
 .toolbar-actions {
     display: flex;
     align-items: center;
     gap: 6px;
+    flex-shrink: 0;
 }
 
 /* Button System */
@@ -435,6 +494,46 @@ body {
     transition: all 0.15s ease;
     height: 28px;
     line-height: 1;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.btn-honey-toggle {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    color: #fbbf24;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 10px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-honey-toggle:hover {
+    background: rgba(245, 158, 11, 0.22);
+    border-color: rgba(245, 158, 11, 0.6);
+}
+
+.btn-honey-toggle.active {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.25));
+    border-color: #f59e0b;
+    color: #fef3c7;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+}
+
+.honey-pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 6px #22c55e;
+    flex-shrink: 0;
 }
 
 .btn:active {
@@ -2552,4 +2651,31 @@ input:checked + .slider-sm:before {
     font-size: 11.5px;
     margin-top: 10px;
 }
+
+/* ===================================================
+   RESPONSIVE TOPBAR ADAPTATION
+   =================================================== */
+@media (max-width: 1400px) {
+    #sandikPill { display: none !important; }
+}
+
+@media (max-width: 1300px) {
+    #doluMinyonPill { display: none !important; }
+}
+
+@media (max-width: 1200px) {
+    #envanterPill { display: none !important; }
+    .current-server-pill .current-server-label { display: none !important; }
+}
+
+@media (max-width: 1100px) {
+    #kovanSayisiPill { display: none !important; }
+    .server-status-pill .user-chip { display: none !important; }
+}
+
+@media (max-width: 980px) {
+    #minyonSayisiPill { display: none !important; }
+    #topbarProfileName { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
 

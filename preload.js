@@ -8,6 +8,10 @@ const api = {
         minimize: () => ipcRenderer.send('window:minimize'),
         maximize: () => ipcRenderer.send('window:maximize'),
         close: () => ipcRenderer.send('window:close'),
+        onWindowState: (callback) => {
+            ipcRenderer.removeAllListeners('window:state-changed')
+            ipcRenderer.on('window:state-changed', (e, state) => callback(state))
+        },
         onNavigate: (callback) => {
             ipcRenderer.removeAllListeners('app:navigate')
             ipcRenderer.on('app:navigate', (e, view) => callback(view))
