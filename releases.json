@@ -1,6 +1,40 @@
 {
   "releases": [
     {
+      "id": "rel-1-0-1",
+      "version": "1.0.1",
+      "title": "EmsalClient v1.0.1 — Otomasyon & Giriş Güncellemesi",
+      "releaseType": "minor",
+      "releaseDate": "2026-09-09",
+      "status": "published",
+      "mandatory": false,
+      "channel": "stable",
+      "changes": [
+        {
+          "type": "feature",
+          "description": "Canlı envanter paneline tek tıkla 'Envanteri Boşalt' butonu ve otomatik eşya atma desteği"
+        },
+        {
+          "type": "improvement",
+          "description": "Minyon kontrol sistemi sadece bilgi toplama moduna uyarlandı (veri çekimi güvenli hale getirildi)"
+        },
+        {
+          "type": "fix",
+          "description": "AesirMC lobi girişinde zaman aşımı (keepalive 30s timeout) sorunu çözüldü (Yedek zamanlayıcı ve Türkçe karakter desteği)"
+        },
+        {
+          "type": "fix",
+          "description": "Dinamik ada sunucusu aktarım hatalarında ('Unable to connect', 'Server is full') otomatik yeniden bağlanma döngüsü eklendi"
+        },
+        {
+          "type": "improvement",
+          "description": "Küçük ekran ve pencere boyutlandırmaları için responsive arayüz ve taşma düzeltmeleri yapıldı"
+        }
+      ],
+      "createdAt": "2026-09-09T12:00:00.000Z",
+      "updatedAt": "2026-09-09T12:00:00.000Z"
+    },
+    {
       "id": "rel-1-0-0",
       "version": "1.0.0",
       "title": "EmsalClient v1.0.0 - İlk Kararlı Sürüm",
