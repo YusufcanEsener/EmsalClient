@@ -1,6 +1,38 @@
 {
   "releases": [
     {
+      "id": "rel-1-0-4",
+      "version": "1.0.4",
+      "title": "EmsalClient v1.0.4 — Kesintisiz Lobi/Skyblock Giriş Akışı, Hasat Analitiği & Taşma Koruması",
+      "releaseType": "minor",
+      "releaseDate": "2026-09-09",
+      "status": "published",
+      "mandatory": false,
+      "channel": "stable",
+      "changes": [
+        {
+          "type": "fix",
+          "description": "Giriş (Auth) sunucusunda henüz lobiye geçilmeden /gir skyblock gönderilerek engellenmesi sorunu çözüldü; 3 aşamalı güvenli bağlantı akışına geçildi"
+        },
+        {
+          "type": "fix",
+          "description": "Lobinin Scoreboard tarafından yanlışlıkla Skyblock sanılması ve lobide /is go komutu gönderilmesi engellendi"
+        },
+        {
+          "type": "fix",
+          "description": "Skyblock giriş anında oluşan 200+ scoreUpdated olay fırtınası, sonsuz durum döngüsü ve senkron disk I/O kilitlenmesi (Yanıt Vermiyor / donma hatası) tamamen giderildi"
+        },
+        {
+          "type": "feature",
+          "description": "Detaylı Hasat Analitiği & Veri Göstergesi: Canlı hasat sayacı, KPI kartları, son hasat akışı, kategori filtreleme ve oturum istatistikleri eklendi"
+        },
+        {
+          "type": "feature",
+          "description": "Çanta Dolunca Ara Boşaltma (Taşma Koruması): Hasat sırasında çanta dolarsa yere eşya düşmesini önlemek için sandığa otomatik ara boşaltma sistemi eklendi"
+        }
+      ]
+    },
+    {
       "id": "rel-1-0-3",
       "version": "1.0.3",
       "title": "EmsalClient v1.0.3 — Hızlı Sandık Aktarımı (Shift-Click) Düzeltmesi",

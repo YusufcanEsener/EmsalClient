@@ -190,11 +190,17 @@ class ProfileStore {
         const profile = profiles.find(p => p.id === id)
         if (!profile) return
 
-        profile.meta = {
-            ...profile.meta,
-            ...metaUpdates
+        let degisti = false
+        if (!profile.meta) profile.meta = {}
+        for (const [key, val] of Object.entries(metaUpdates)) {
+            if (profile.meta[key] !== val) {
+                profile.meta[key] = val
+                degisti = true
+            }
         }
-        this._save()
+        if (degisti) {
+            this._save()
+        }
     }
 
     exportProfiles(profileIds = null) {

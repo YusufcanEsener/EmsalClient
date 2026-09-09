@@ -65,6 +65,9 @@ const api = {
         hedefYuzdeDegistir: (yuzde) => ipcRenderer.invoke('bot:hedef-yuzde-degistir', yuzde),
         otoBalDurumAl: () => ipcRenderer.invoke('bot:oto-bal-durum-al'),
         otoBalDegistir: (durum) => ipcRenderer.invoke('bot:oto-bal-degistir', durum),
+        sunucuKontrolEt: () => ipcRenderer.invoke('bot:sunucu-kontrol-et'),
+        hasatAl: () => ipcRenderer.invoke('bot:hasat-al'),
+        hasatSifirla: (sadeceOturum) => ipcRenderer.invoke('bot:hasat-sifirla', sadeceOturum),
 
         onLog: (callback) => {
             ipcRenderer.removeAllListeners('bot:log')
@@ -97,6 +100,14 @@ const api = {
         onSunucuGuncelle: (callback) => {
             ipcRenderer.removeAllListeners('bot:sunucu-guncelle')
             ipcRenderer.on('bot:sunucu-guncelle', (e, data) => callback(data))
+        },
+        onHasatGuncelle: (callback) => {
+            ipcRenderer.removeAllListeners('bot:hasat-guncelle')
+            ipcRenderer.on('bot:hasat-guncelle', (e, data) => callback(data))
+        },
+        onTasmaKorumasi: (callback) => {
+            ipcRenderer.removeAllListeners('bot:tasma-korumasi')
+            ipcRenderer.on('bot:tasma-korumasi', (e, data) => callback(data))
         }
     },
     settings: {
@@ -138,6 +149,9 @@ const legacyElectronAPI = {
     otoBalDurumAl: () => api.bot.otoBalDurumAl(),
     otoBalDegistir: (durum) => api.bot.otoBalDegistir(durum),
     durumAl: () => api.bot.status(),
+    sunucuKontrolEt: () => api.bot.sunucuKontrolEt(),
+    hasatAl: () => api.bot.hasatAl(),
+    hasatSifirla: (sadeceOturum) => api.bot.hasatSifirla(sadeceOturum),
 
     windowMinimize: () => api.app.minimize(),
     windowMaximize: () => api.app.maximize(),
@@ -150,7 +164,9 @@ const legacyElectronAPI = {
     onDurumGuncelle: (cb) => api.bot.onDurum(cb),
     onSandikGuncelle: (cb) => api.bot.onSandik(cb),
     onOtoBalGuncelle: (cb) => api.bot.onOtoBal(cb),
-    onSunucuGuncelle: (cb) => api.bot.onSunucuGuncelle(cb)
+    onSunucuGuncelle: (cb) => api.bot.onSunucuGuncelle(cb),
+    onHasatGuncelle: (cb) => api.bot.onHasatGuncelle(cb),
+    onTasmaKorumasi: (cb) => api.bot.onTasmaKorumasi(cb)
 }
 
 contextBridge.exposeInMainWorld('api', api)

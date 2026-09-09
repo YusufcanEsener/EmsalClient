@@ -164,6 +164,18 @@ botManager.on('sunucuGuncellendi', (data) => {
     }
 })
 
+botManager.on('hasatGuncellendi', (data) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('bot:hasat-guncelle', data)
+    }
+})
+
+botManager.on('tasmaKorumasiTetiklendi', (data) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('bot:tasma-korumasi', data)
+    }
+})
+
 // ==========================================
 // IPC HANDLERS - UYGULAMA & PENCERE
 // ==========================================
@@ -252,6 +264,9 @@ ipcMain.handle('bot:test-modu-degistir', (e, durum) => botManager.testModuDegist
 ipcMain.handle('bot:hedef-yuzde-degistir', (e, yuzde) => botManager.hedefYuzdeDegistir(yuzde))
 ipcMain.handle('bot:oto-bal-durum-al', () => botManager.otoBalDurumAl())
 ipcMain.handle('bot:oto-bal-degistir', (e, durum) => botManager.otoBalDegistir(durum))
+ipcMain.handle('bot:sunucu-kontrol-et', () => botManager.sunucuKontrolEt())
+ipcMain.handle('bot:hasat-al', () => botManager.hasatAnalitigiAl())
+ipcMain.handle('bot:hasat-sifirla', (e, sadeceOturum) => botManager.hasatAnalitigiSifirla(sadeceOturum))
 
 // ==========================================
 // IPC HANDLERS - AYARLAR (SETTINGS) & LOGLAR

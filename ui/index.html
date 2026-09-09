@@ -88,6 +88,14 @@
                     <span class="metric-val text-cyan" id="envanterDolulukText">0/36</span>
                 </div>
 
+                <div class="metric-pill" id="hasatPill" title="Toplam Hasat Analitiği (Tıkla ve Hasat Sekmesine Git)" style="cursor: pointer;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="metric-icon text-purple">
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                    </svg>
+                    <span class="metric-label">Hasat:</span>
+                    <span class="metric-val text-purple" id="topbarHasatCount">0</span>
+                </div>
+
                 <div class="metric-pill" id="sandikPill" title="Hedef Sandık Konumu">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="metric-icon">
                         <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
@@ -330,6 +338,13 @@
                                 <span>Envanter</span>
                                 <span class="count-tag tag-cyan" id="envanterBadge">0/36</span>
                             </button>
+                            <button class="segmented-tab-btn" id="tabHasat" data-tab="hasat" type="button">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                                </svg>
+                                <span>Hasat Analitiği</span>
+                                <span class="count-tag tag-purple" id="hasatBadge">0</span>
+                            </button>
                         </div>
                     </div>
                     <div class="pane-meta">
@@ -430,6 +445,116 @@
                                 <div class="inv-items-compact-grid" id="invItemsList">
                                     <!-- Items listed with count and name -->
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DETAILED HARVEST ANALYTICS VIEW -->
+                <div class="minions-scroll-area harvest-pane-view" id="hasatGrid" style="display: none;">
+                    <div class="harvest-container">
+                        <!-- Top Summary KPI Cards (4 Cards) -->
+                        <div class="hasat-kpi-row">
+                            <div class="hasat-kpi-card card-glow-purple">
+                                <div class="hasat-kpi-icon-wrap bg-purple-subtle">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                    </svg>
+                                </div>
+                                <div class="hasat-kpi-content">
+                                    <span class="hasat-kpi-label">Toplam Hasat</span>
+                                    <span class="hasat-kpi-value text-purple" id="kpiToplamHasat">0</span>
+                                    <span class="hasat-kpi-sub">Tüm zamanlar</span>
+                                </div>
+                            </div>
+
+                            <div class="hasat-kpi-card card-glow-cyan">
+                                <div class="hasat-kpi-icon-wrap bg-cyan-subtle">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="hasat-kpi-content">
+                                    <span class="hasat-kpi-label">Oturum Hasadı</span>
+                                    <span class="hasat-kpi-value text-cyan" id="kpiOturumHasat">0</span>
+                                    <span class="hasat-kpi-sub" id="kpiOturumBaslangic">Bu oturum</span>
+                                </div>
+                            </div>
+
+                            <div class="hasat-kpi-card card-glow-gold">
+                                <div class="hasat-kpi-icon-wrap bg-gold-subtle">
+                                    <span style="font-size: 20px;">👑</span>
+                                </div>
+                                <div class="hasat-kpi-content">
+                                    <span class="hasat-kpi-label">En Çok Çıkan</span>
+                                    <span class="hasat-kpi-value text-gold" id="kpiEnCokEsya">-</span>
+                                    <span class="hasat-kpi-sub" id="kpiEnCokAdet">0 adet</span>
+                                </div>
+                            </div>
+
+                            <div class="hasat-kpi-card card-glow-green">
+                                <div class="hasat-kpi-icon-wrap bg-green-subtle">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+                                        <path d="m3.3 7 8.7 5 8.7-5"></path>
+                                        <path d="M12 22V12"></path>
+                                    </svg>
+                                </div>
+                                <div class="hasat-kpi-content">
+                                    <span class="hasat-kpi-label">Taşma Koruması</span>
+                                    <span class="hasat-kpi-value text-emerald" id="kpiBosaltmaSefer">0</span>
+                                    <span class="hasat-kpi-sub" id="kpiBosaltmaEsya">0 eşya boşaltıldı</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Filter, Search & Actions Bar -->
+                        <div class="hasat-toolbar-row">
+                            <div class="hasat-filter-chips" id="hasatKategoriFiltreleri">
+                                <button class="hasat-chip active" data-cat="all">Tümü</button>
+                                <button class="hasat-chip" data-cat="kovan">🍯 Kovan</button>
+                                <button class="hasat-chip" data-cat="maden">⛏️ Maden</button>
+                                <button class="hasat-chip" data-cat="odun">🌲 Odun</button>
+                                <button class="hasat-chip" data-cat="tarim">🌾 Tarım</button>
+                                <button class="hasat-chip" data-cat="canavar">⚔️ Canavar</button>
+                                <button class="hasat-chip" data-cat="diger">📦 Diğer</button>
+                            </div>
+                            <div class="hasat-search-wrap">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-input-icon">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                                <input type="text" id="hasatAramaInput" placeholder="Eşya veya kategori ara..." class="hasat-search-input">
+                            </div>
+                            <button class="btn btn-subtle btn-sm" id="btnHasatSifirla" title="Bu oturumun hasat sayacını sıfırla">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                                    <path d="M3 3v5h5"></path>
+                                </svg>
+                                <span>Oturumu Sıfırla</span>
+                            </button>
+                        </div>
+
+                        <!-- Harvest Item Cards Grid -->
+                        <div class="hasat-items-section">
+                            <div class="hasat-section-header">
+                                <span class="hasat-section-title">📊 Toplanan Eşyalar & Miktarlar</span>
+                                <span class="inv-badge inv-badge-purple" id="hasatEsyaCesidiBadge">0 Çeşit</span>
+                            </div>
+                            <div class="hasat-cards-grid" id="hasatCardsContainer">
+                                <div class="hasat-empty-state">Henüz hasat verisi kaydedilmedi.</div>
+                            </div>
+                        </div>
+
+                        <!-- Live Activity Feed Timeline -->
+                        <div class="hasat-feed-section">
+                            <div class="hasat-section-header">
+                                <span class="hasat-section-title">⚡ Canlı Hasat & Boşaltma Akışı</span>
+                                <span class="badge badge-subtle" id="hasatFeedCount">Son Hareketler</span>
+                            </div>
+                            <div class="hasat-feed-list" id="hasatFeedList">
+                                <div class="hasat-feed-empty">Henüz kaydedilmiş hasat hareketi bulunmuyor.</div>
                             </div>
                         </div>
                     </div>

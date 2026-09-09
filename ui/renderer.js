@@ -61,6 +61,33 @@ const elInvHotbarSlotsBadge = document.getElementById('invHotbarSlotsBadge')
 const elInvTotalCountBadge = document.getElementById('invTotalCountBadge')
 let guncelEnvanter = null
 
+// Hasat Analitiği Bileşenleri
+const elTabHasat = document.getElementById('tabHasat')
+const elHasatBadge = document.getElementById('hasatBadge')
+const elHasatGrid = document.getElementById('hasatGrid')
+const elHasatPill = document.getElementById('hasatPill')
+const elTopbarHasatCount = document.getElementById('topbarHasatCount')
+
+const elKpiToplamHasat = document.getElementById('kpiToplamHasat')
+const elKpiOturumHasat = document.getElementById('kpiOturumHasat')
+const elKpiOturumBaslangic = document.getElementById('kpiOturumBaslangic')
+const elKpiEnCokEsya = document.getElementById('kpiEnCokEsya')
+const elKpiEnCokAdet = document.getElementById('kpiEnCokAdet')
+const elKpiBosaltmaSefer = document.getElementById('kpiBosaltmaSefer')
+const elKpiBosaltmaEsya = document.getElementById('kpiBosaltmaEsya')
+
+const elHasatKategoriFiltreleri = document.getElementById('hasatKategoriFiltreleri')
+const elHasatAramaInput = document.getElementById('hasatAramaInput')
+const elBtnHasatSifirla = document.getElementById('btnHasatSifirla')
+const elHasatEsyaCesidiBadge = document.getElementById('hasatEsyaCesidiBadge')
+const elHasatCardsContainer = document.getElementById('hasatCardsContainer')
+const elHasatFeedList = document.getElementById('hasatFeedList')
+const elHasatFeedCount = document.getElementById('hasatFeedCount')
+
+let guncelHasat = null
+let aktifHasatKategori = 'all'
+let hasatAramaKelimesi = ''
+
 const elSonGuncelleme = document.getElementById('sonGuncellemeText')
 const elTerminalLog = document.getElementById('terminalLog')
 const elChkAutoScroll = document.getElementById('chkAutoScroll')
@@ -561,17 +588,19 @@ elBtnTemizle.addEventListener('click', () => {
     ekleTerminalSatiri('Terminal temizlendi.', 'badge-system', 'SYS')
 })
 
-// Tab Değiştirme (Minyonlar vs. Kovanlar vs. Envanter)
+// Tab Değiştirme (Minyonlar vs. Kovanlar vs. Envanter vs. Hasat)
 function switchTab(tab) {
     aktifTab = tab
 
     if (elTabMinyonlar) elTabMinyonlar.classList.remove('active')
     if (elTabKovanlar) elTabKovanlar.classList.remove('active')
     if (elTabEnvanter) elTabEnvanter.classList.remove('active')
+    if (elTabHasat) elTabHasat.classList.remove('active')
 
     if (elMinyonlarGrid) elMinyonlarGrid.style.display = 'none'
     if (elKovanlarGrid) elKovanlarGrid.style.display = 'none'
     if (elEnvanterGrid) elEnvanterGrid.style.display = 'none'
+    if (elHasatGrid) elHasatGrid.style.display = 'none'
 
     if (tab === 'kovanlar') {
         if (elTabKovanlar) elTabKovanlar.classList.add('active')
@@ -581,6 +610,12 @@ function switchTab(tab) {
         if (elEnvanterGrid) elEnvanterGrid.style.display = 'block'
         if (guncelEnvanter) {
             renderEnvanter(guncelEnvanter)
+        }
+    } else if (tab === 'hasat') {
+        if (elTabHasat) elTabHasat.classList.add('active')
+        if (elHasatGrid) elHasatGrid.style.display = 'block'
+        if (guncelHasat) {
+            renderHasat(guncelHasat)
         }
     } else {
         if (elTabMinyonlar) elTabMinyonlar.classList.add('active')
@@ -598,6 +633,19 @@ if (elTabKovanlar) {
 
 if (elTabEnvanter) {
     elTabEnvanter.addEventListener('click', () => switchTab('envanter'))
+}
+
+if (elTabHasat) {
+    elTabHasat.addEventListener('click', () => switchTab('hasat'))
+}
+
+if (elHasatPill) {
+    elHasatPill.addEventListener('click', () => switchTab('hasat'))
+}
+
+if (elEnvanterDolulukText && elEnvanterDolulukText.parentElement) {
+    elEnvanterDolulukText.parentElement.style.cursor = 'pointer'
+    elEnvanterDolulukText.parentElement.addEventListener('click', () => switchTab('envanter'))
 }
 
 // JSON Modal İçerik Güncelleme
@@ -1345,6 +1393,186 @@ window.electronAPI.onEnvanterGuncelle((envanter) => {
 })
 
 // ===================================================
+// 3C. HASAT ANALİTİĞİ VE VERİ GÖSTERGESİ
+// ===================================================
+
+function getKategoriAdi(cat) {
+    const map = {
+        'kovan': '🍯 Kovan',
+        'maden': '⛏️ Maden',
+        'odun': '🌲 Odun',
+        'tarim': '🌾 Tarım',
+        'canavar': '⚔️ Canavar',
+        'diger': '📦 Diğer'
+    }
+    return map[cat] || '📦 Diğer'
+}
+
+function renderHasat(data) {
+    if (!data) return
+    guncelHasat = data
+
+    const ozet = data.ozet || {}
+    const items = data.items || {}
+    const feed = data.feed || []
+
+    const toplamAdet = ozet.toplamAdet ?? 0
+    const oturumAdet = ozet.oturumAdet ?? 0
+    const cesitSayisi = ozet.cesitSayisi ?? Object.keys(items).length
+
+    // 1. Üst Panel Pill ve Sekme Rozetleri
+    if (elTopbarHasatCount) elTopbarHasatCount.textContent = toplamAdet.toLocaleString('tr-TR')
+    if (elHasatBadge) elHasatBadge.textContent = toplamAdet.toLocaleString('tr-TR')
+
+    // 2. KPI Kartları
+    if (elKpiToplamHasat) elKpiToplamHasat.textContent = toplamAdet.toLocaleString('tr-TR')
+    if (elKpiOturumHasat) elKpiOturumHasat.textContent = `+${oturumAdet.toLocaleString('tr-TR')}`
+    if (elKpiOturumBaslangic) {
+        elKpiOturumBaslangic.textContent = ozet.oturumBaslangic ? `Başlangıç: ${ozet.oturumBaslangic}` : 'Bu oturum'
+    }
+
+    if (elKpiEnCokEsya) {
+        elKpiEnCokEsya.textContent = ozet.enCokEsya || '-'
+    }
+    if (elKpiEnCokAdet) {
+        elKpiEnCokAdet.textContent = ozet.enCokAdet ? `${ozet.enCokAdet.toLocaleString('tr-TR')} adet` : '0 adet'
+    }
+
+    if (elKpiBosaltmaSefer) {
+        elKpiBosaltmaSefer.textContent = `${ozet.bosaltmaSeferSayisi ?? 0} Sefer`
+    }
+    if (elKpiBosaltmaEsya) {
+        elKpiBosaltmaEsya.textContent = `${(ozet.bosaltilanToplamEsya ?? 0).toLocaleString('tr-TR')} eşya boşaltıldı`
+    }
+
+    if (elHasatEsyaCesidiBadge) {
+        elHasatEsyaCesidiBadge.textContent = `${cesitSayisi} Çeşit`
+    }
+
+    // 3. Eşya Kartları Grid Render
+    if (elHasatCardsContainer) {
+        const itemKeys = Object.keys(items)
+        const arama = (hasatAramaKelimesi || '').toLowerCase().trim()
+
+        const filtered = itemKeys.filter(key => {
+            const it = items[key]
+            if (aktifHasatKategori !== 'all' && (it.kategori || '').toLowerCase() !== aktifHasatKategori.toLowerCase()) {
+                return false
+            }
+            if (arama) {
+                const matchName = (it.displayName || '').toLowerCase().includes(arama)
+                const matchKey = key.toLowerCase().includes(arama)
+                const matchCat = (it.kategori || '').toLowerCase().includes(arama)
+                if (!matchName && !matchKey && !matchCat) return false
+            }
+            return true
+        })
+
+        // Sıralama: En yüksek toplam adet en başta
+        filtered.sort((a, b) => (items[b].toplamAdet || 0) - (items[a].toplamAdet || 0))
+
+        if (filtered.length === 0) {
+            elHasatCardsContainer.innerHTML = `<div class="hasat-empty-state">Gösterilecek hasat eşyası bulunamadı.</div>`
+        } else {
+            elHasatCardsContainer.innerHTML = filtered.map(key => {
+                const it = items[key]
+                const icon = it.icon || getMinecraftItemIcon(key)
+                const catName = getKategoriAdi(it.kategori)
+                return `
+                    <div class="hasat-item-card" data-item="${key}">
+                        <div class="hasat-item-icon-box">
+                            <span>${icon}</span>
+                        </div>
+                        <div class="hasat-item-details">
+                            <div class="hasat-item-title-row">
+                                <span class="hasat-item-name" title="${it.displayName || key}">${it.displayName || key}</span>
+                                <span class="hasat-cat-badge">${catName}</span>
+                            </div>
+                            <div class="hasat-count-row">
+                                <span class="hasat-item-total">${(it.toplamAdet || 0).toLocaleString('tr-TR')}</span>
+                                ${it.oturumAdet > 0 ? `<span class="hasat-item-session">+${it.oturumAdet.toLocaleString('tr-TR')} oturum</span>` : ''}
+                            </div>
+                            <div class="hasat-item-time">Son: ${it.sonHasatZamani || '-'}</div>
+                        </div>
+                    </div>
+                `
+            }).join('')
+        }
+    }
+
+    // 4. Canlı Feed Listesi Render
+    if (elHasatFeedList) {
+        if (feed.length === 0) {
+            elHasatFeedList.innerHTML = `<div class="hasat-feed-empty">Henüz hasat veya boşaltma hareketi kaydedilmedi.</div>`
+        } else {
+            elHasatFeedList.innerHTML = feed.slice(0, 25).map(item => {
+                const isOverflow = item.tip === 'bosaltma'
+                const icon = isOverflow ? '📦' : (item.icon || '🌾')
+                return `
+                    <div class="hasat-feed-item ${isOverflow ? 'feed-type-overflow' : ''}">
+                        <div class="hasat-feed-left">
+                            <span class="hasat-feed-icon">${icon}</span>
+                            <span class="hasat-feed-text">${item.mesaj}</span>
+                            ${item.kaynak ? `<span class="hasat-feed-source">(${item.kaynak})</span>` : ''}
+                        </div>
+                        <span class="hasat-feed-time">${item.zaman}</span>
+                    </div>
+                `
+            }).join('')
+        }
+    }
+}
+
+// Filtre Butonları Tıklama Olayları
+if (elHasatKategoriFiltreleri) {
+    elHasatKategoriFiltreleri.querySelectorAll('.hasat-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+            elHasatKategoriFiltreleri.querySelectorAll('.hasat-chip').forEach(b => b.classList.remove('active'))
+            btn.classList.add('active')
+            aktifHasatKategori = btn.dataset.cat || 'all'
+            if (guncelHasat) renderHasat(guncelHasat)
+        })
+    })
+}
+
+// Arama Kutusu Filtreleme
+if (elHasatAramaInput) {
+    elHasatAramaInput.addEventListener('input', (e) => {
+        hasatAramaKelimesi = e.target.value
+        if (guncelHasat) renderHasat(guncelHasat)
+    })
+}
+
+// Oturumu Sıfırla Butonu
+if (elBtnHasatSifirla) {
+    elBtnHasatSifirla.addEventListener('click', async () => {
+        if (window.electronAPI && typeof window.electronAPI.hasatSifirla === 'function') {
+            const sonuc = await window.electronAPI.hasatSifirla(true)
+            if (sonuc) {
+                guncelHasat = sonuc
+                renderHasat(sonuc)
+                showToast('Oturum hasat sayaçları başarıyla sıfırlandı.', 'info')
+            }
+        }
+    })
+}
+
+// Hasat Analitiği Güncellendiğinde
+if (window.electronAPI && typeof window.electronAPI.onHasatGuncelle === 'function') {
+    window.electronAPI.onHasatGuncelle((hasat) => {
+        guncelHasat = hasat
+        renderHasat(hasat)
+    })
+}
+
+// Taşma Koruması Tetiklendiğinde
+if (window.electronAPI && typeof window.electronAPI.onTasmaKorumasi === 'function') {
+    window.electronAPI.onTasmaKorumasi((data) => {
+        showToast(`⚠️ [Taşma Koruması] Çanta dolduğu için sandığa ara boşaltma yapıldı! (${data?.kaynak || 'İşlem'})`, 'warning')
+    })
+}
+
+// ===================================================
 // 4. DURUM VE VERİ SENKRONİZASYONU
 // ===================================================
 
@@ -1463,6 +1691,21 @@ function syncDurum(durum) {
         guncelEnvanter = durum.envanter
         renderEnvanter(durum.envanter)
     }
+
+    if (durum.hasat) {
+        guncelHasat = durum.hasat
+        renderHasat(durum.hasat)
+    }
+}
+
+// Başlangıçta hasat analitiği verilerini al
+if (window.electronAPI && typeof window.electronAPI.hasatAl === 'function') {
+    window.electronAPI.hasatAl().then(h => {
+        if (h) {
+            guncelHasat = h
+            renderHasat(h)
+        }
+    }).catch(() => {})
 }
 
 window.electronAPI.onDurumGuncelle((durum) => {
@@ -1492,6 +1735,20 @@ if (window.electronAPI && typeof window.electronAPI.onSunucuGuncelle === 'functi
             if (data.scoreboardBaslik) {
                 elCurrentServerPill.title = `Scoreboard Tablo Başlığı: ${data.scoreboardBaslik}`
             }
+        }
+    })
+}
+
+// Mevcut Sunucu rozetine tıklandığında anında konumu sorgula ve güncelle
+if (elCurrentServerPill) {
+    elCurrentServerPill.style.cursor = 'pointer'
+    elCurrentServerPill.addEventListener('click', async () => {
+        if (window.electronAPI && typeof window.electronAPI.sunucuKontrolEt === 'function') {
+            elCurrentServerPill.style.opacity = '0.5'
+            try {
+                await window.electronAPI.sunucuKontrolEt()
+            } catch (e) { }
+            setTimeout(() => { elCurrentServerPill.style.opacity = '1' }, 400)
         }
     })
 }

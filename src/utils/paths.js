@@ -42,6 +42,7 @@ const paths = {
     getLogsDir: () => ensureDir(path.join(getUserDataDir(), 'logs')),
     getMinyonlarJsonPath: () => path.join(getUserDataDir(), 'minyonlar.json'),
     getKovanlarJsonPath: () => path.join(getUserDataDir(), 'kovanlar.json'),
+    getHasatAnalitigiJsonPath: () => path.join(getUserDataDir(), 'hasat_analitigi.json'),
     ensureDir
 }
 

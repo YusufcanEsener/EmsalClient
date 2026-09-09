@@ -44,12 +44,18 @@ class BotManager extends EventEmitter {
 
         botKontrol.botEvents.on('durum', (data) => {
             if (data && data.durum) {
-                this.runtime.status = data.durum
-                if (this.activeProfileId) {
-                    profileStore.updateRuntimeMeta(this.activeProfileId, {
-                        status: data.durum,
-                        lastError: data.detay || null
-                    })
+                const durumDegisti = this.runtime.status !== data.durum || (data.detay && data.detay !== this.runtime.lastError)
+                if (durumDegisti) {
+                    this.runtime.status = data.durum
+                    this.runtime.lastError = data.detay || null
+                    if (this.activeProfileId) {
+                        try {
+                            profileStore.updateRuntimeMeta(this.activeProfileId, {
+                                status: data.durum,
+                                lastError: data.detay || null
+                            })
+                        } catch (e) { }
+                    }
                 }
             }
             this.emit('durum', this.getStatus())
@@ -62,6 +68,8 @@ class BotManager extends EventEmitter {
         botKontrol.botEvents.on('oto-bal-guncelle', (data) => this.emit('oto-bal-guncelle', data))
         botKontrol.botEvents.on('ayarGuncellendi', (data) => this.emit('ayarGuncellendi', data))
         botKontrol.botEvents.on('sunucuGuncellendi', (data) => this.emit('sunucuGuncellendi', data))
+        botKontrol.botEvents.on('hasatGuncellendi', (data) => this.emit('hasatGuncellendi', data))
+        botKontrol.botEvents.on('tasmaKorumasiTetiklendi', (data) => this.emit('tasmaKorumasiTetiklendi', data))
     }
 
     getActiveProfile() {
@@ -141,6 +149,13 @@ class BotManager extends EventEmitter {
                 server: profile.server
             } : null
         }
+    }
+
+    sunucuKontrolEt() {
+        if (typeof botKontrol.sunucuKontrolEt === 'function') {
+            botKontrol.sunucuKontrolEt()
+        }
+        return this.getStatus()
     }
 
     // Bot Eylem Köprüleri (Mevcut mantık aynen korunur)
@@ -238,6 +253,14 @@ class BotManager extends EventEmitter {
             }
         }
         return res
+    }
+
+    hasatAnalitigiAl() {
+        return botKontrol.hasatAnalitigiAl ? botKontrol.hasatAnalitigiAl() : null
+    }
+
+    hasatAnalitigiSifirla(sadeceOturum = true) {
+        return botKontrol.hasatAnalitigiSifirla ? botKontrol.hasatAnalitigiSifirla(sadeceOturum) : null
     }
 }
 

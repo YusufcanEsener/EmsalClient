@@ -2811,4 +2811,430 @@ input:checked + .slider-sm:before {
     #topbarProfileName { max-width: 75px; }
 }
 
+/* ===================================================
+   HASAT ANALİTİĞİ & TAŞMA KORUMASI GÖSTERGE SİSTEMİ
+   =================================================== */
+
+/* Color & Tag Utilities */
+.text-purple { color: #c084fc !important; }
+.text-gold { color: #fbbf24 !important; }
+.text-emerald { color: #34d399 !important; }
+
+.tag-purple {
+    background: rgba(168, 85, 247, 0.18);
+    color: #d8b4fe;
+    border: 1px solid rgba(168, 85, 247, 0.35);
+}
+
+.inv-badge-purple {
+    background: rgba(168, 85, 247, 0.18);
+    color: #e9d5ff;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.bg-purple-subtle { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+.bg-cyan-subtle { background: rgba(6, 182, 212, 0.15); color: #22d3ee; }
+.bg-gold-subtle { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+.bg-green-subtle { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+
+/* Harvest Container */
+.harvest-pane-view {
+    padding: 16px;
+    overflow-y: auto;
+}
+
+.harvest-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* KPI Cards Row */
+.hasat-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+@media (max-width: 1100px) {
+    .hasat-kpi-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .hasat-kpi-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.hasat-kpi-card {
+    background: rgba(24, 27, 36, 0.7);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.hasat-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.card-glow-purple:hover {
+    border-color: rgba(168, 85, 247, 0.4);
+    box-shadow: 0 6px 20px rgba(168, 85, 247, 0.15);
+}
+
+.card-glow-cyan:hover {
+    border-color: rgba(6, 182, 212, 0.4);
+    box-shadow: 0 6px 20px rgba(6, 182, 212, 0.15);
+}
+
+.card-glow-gold:hover {
+    border-color: rgba(245, 158, 11, 0.4);
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.15);
+}
+
+.card-glow-green:hover {
+    border-color: rgba(16, 185, 129, 0.4);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.15);
+}
+
+.hasat-kpi-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.hasat-kpi-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.hasat-kpi-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 2px;
+}
+
+.hasat-kpi-value {
+    font-size: 22px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.hasat-kpi-sub {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 2px;
+}
+
+/* Toolbar & Filters */
+.hasat-toolbar-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: rgba(24, 27, 36, 0.5);
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.hasat-filter-chips {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.hasat-chip {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+    padding: 5px 11px;
+    border-radius: 7px;
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.hasat-chip:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.hasat-chip.active {
+    background: rgba(168, 85, 247, 0.25);
+    color: #e9d5ff;
+    border-color: rgba(168, 85, 247, 0.5);
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+}
+
+.hasat-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 180px;
+    max-width: 300px;
+}
+
+.hasat-search-wrap .search-input-icon {
+    position: absolute;
+    left: 10px;
+    color: rgba(255, 255, 255, 0.4);
+    pointer-events: none;
+}
+
+.hasat-search-input {
+    width: 100%;
+    background: rgba(13, 16, 23, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 6px 10px 6px 30px;
+    color: #fff;
+    font-size: 12px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.hasat-search-input:focus {
+    border-color: rgba(168, 85, 247, 0.5);
+    box-shadow: 0 0 8px rgba(168, 85, 247, 0.2);
+}
+
+/* Sections */
+.hasat-items-section, .hasat-feed-section {
+    background: rgba(24, 27, 36, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.hasat-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.hasat-section-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 0.3px;
+}
+
+/* Harvest Cards Grid */
+.hasat-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+}
+
+.hasat-item-card {
+    background: rgba(15, 18, 26, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.hasat-item-card:hover {
+    border-color: rgba(168, 85, 247, 0.3);
+    background: rgba(26, 22, 38, 0.75);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.hasat-item-icon-box {
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.hasat-item-details {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.hasat-item-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.hasat-item-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #f1f5f9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.hasat-cat-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.6);
+    flex-shrink: 0;
+}
+
+.hasat-count-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: 2px;
+}
+
+.hasat-item-total {
+    font-size: 18px;
+    font-weight: 700;
+    color: #f8fafc;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.hasat-item-session {
+    font-size: 11px;
+    font-weight: 600;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.12);
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+
+.hasat-item-time {
+    font-size: 10.5px;
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.hasat-empty-state {
+    grid-column: 1 / -1;
+    padding: 32px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 13px;
+}
+
+/* Activity Feed */
+.hasat-feed-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.hasat-feed-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    background: rgba(13, 16, 23, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    font-size: 12px;
+    transition: all 0.15s ease;
+}
+
+.hasat-feed-item:hover {
+    background: rgba(13, 16, 23, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.hasat-feed-item.feed-type-overflow {
+    border-left: 3px solid #10b981;
+    background: rgba(16, 185, 129, 0.06);
+}
+
+.hasat-feed-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.hasat-feed-icon {
+    font-size: 15px;
+    flex-shrink: 0;
+}
+
+.hasat-feed-text {
+    color: #e2e8f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.hasat-feed-source {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 11px;
+}
+
+.hasat-feed-time {
+    font-size: 10.5px;
+    color: rgba(255, 255, 255, 0.35);
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+}
+
+.hasat-feed-empty {
+    padding: 20px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 12px;
+}
+
+@media (max-width: 1450px) {
+    #hasatPill { display: none !important; }
+}
+
 
