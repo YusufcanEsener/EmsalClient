@@ -1,6 +1,34 @@
 {
   "releases": [
     {
+      "id": "rel-1-0-3",
+      "version": "1.0.3",
+      "title": "EmsalClient v1.0.3 — Hızlı Sandık Aktarımı (Shift-Click) Düzeltmesi",
+      "releaseType": "patch",
+      "releaseDate": "2026-09-09",
+      "status": "published",
+      "mandatory": false,
+      "channel": "stable",
+      "changes": [
+        {
+          "type": "fix",
+          "description": "Sandığa eşya aktarırken Paper/Spigot sunucularında desync ve iptale yol açan kursor taşıma yöntemi yerine Shift-Click (hızlı aktarım) moduna geçildi"
+        },
+        {
+          "type": "fix",
+          "description": "Eşyaların sandığa aktarılmadan döngünün 64 kez tekrarlanması ve eşyaların çantada kalması sorunu tamamen çözüldü"
+        },
+        {
+          "type": "fix",
+          "description": "Prismarine-windows kütüphanesindeki sandık son slotu aktarım sınırlandırması düzeltildi"
+        },
+        {
+          "type": "improvement",
+          "description": "Sandık doluluk ve eşya uyumluluk kontrolü getirilerek aktarım sonrası anlık envanter arayüzü güncellenmesi sağlandı"
+        }
+      ]
+    },
+    {
       "id": "rel-1-0-2",
       "version": "1.0.2",
       "title": "EmsalClient v1.0.2 — Envanter Boşaltma & Sürüm Senkronizasyonu",

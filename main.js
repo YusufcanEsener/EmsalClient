@@ -12,6 +12,23 @@ try {
     appPaths = null
 }
 
+// Prismarine-windows shiftClick off-by-one düzeltmesi (Sandığın son slotunun da kullanılabilmesi için)
+try {
+    const pWindows = require('prismarine-windows')('1.20.1')
+    if (pWindows && pWindows.Window && pWindows.Window.prototype.shiftClick) {
+        const origShiftClick = pWindows.Window.prototype.shiftClick
+        pWindows.Window.prototype.shiftClick = function (click) {
+            const { item } = click
+            if (!item) return
+            if (this.type !== 'minecraft:inventory' && click.slot >= this.inventoryStart) {
+                this.fillAndDump(item, 0, this.inventoryStart)
+                return
+            }
+            return origShiftClick.call(this, click)
+        }
+    }
+} catch (e) { }
+
 // Bot olaylarını Electron arayüzüne iletmek için EventEmitter
 const botEvents = new EventEmitter()
 
@@ -1521,34 +1538,73 @@ async function sandigaEsyalariKoy() {
     let sandikDolu = false
 
     try {
-        let guvenlikSayaci = 0
-        while (!sandikDolu && guvenlikSayaci < 64) {
-            guvenlikSayaci++
-            const cantadakiEsyalar = bot.inventory.items()
-            const aktarilacakEsya = cantadakiEsyalar.find(esya => {
-                const esyaAdi = esya.name.toLowerCase()
-                return !KORUNACAK_ESYALAR.some(k => esyaAdi.includes(k))
-            })
+        const invStart = sandikPenceresi.inventoryStart
+        const invEnd = sandikPenceresi.inventoryEnd || sandikPenceresi.slots.length
 
-            if (!aktarilacakEsya) {
-                break
+        function sandikTamamenDoluMu() {
+            for (let s = 0; s < invStart; s++) {
+                const chestItem = sandikPenceresi.slots[s]
+                if (!chestItem) return false
+                if (chestItem.count < chestItem.stackSize) return false
             }
-
-            try {
-                console.log(`  -> ${aktarilacakEsya.count} adet ${aktarilacakEsya.name} sandığa aktarılıyor...`)
-                await sandikPenceresi.deposit(aktarilacakEsya.type, null, aktarilacakEsya.count)
-                aktarilanSayisi++
-                await bekle(400)
-            } catch (hata) {
-                console.log(`[UYARI] ${aktarilacakEsya.name} aktarılamadı: ${hata.message}`)
-                const errLower = (hata.message || '').toLowerCase()
-                if (errLower.includes('full') || errLower.includes('dolu') || errLower.includes('closed') || errLower.includes('kapandı')) {
-                    sandikDolu = true
-                }
-                break
-            }
+            return true
         }
 
+        function sandiktaYerVarMi(item) {
+            for (let s = 0; s < invStart; s++) {
+                const chestItem = sandikPenceresi.slots[s]
+                if (!chestItem) return true
+                if (chestItem.type === item.type && chestItem.count < chestItem.stackSize) return true
+            }
+            return false
+        }
+
+        let aktarimYapildi = true
+        let turSayaci = 0
+
+        while (aktarimYapildi && turSayaci < 3 && !sandikTamamenDoluMu()) {
+            turSayaci++
+            aktarimYapildi = false
+
+            for (let slot = invStart; slot < invEnd; slot++) {
+                if (!sandikPenceresi || !bot.currentWindow) {
+                    console.log('[UYARI] Sandık penceresi beklenmedik şekilde kapandı!')
+                    break
+                }
+
+                const item = sandikPenceresi.slots[slot]
+                if (!item) continue
+
+                const esyaAdi = (item.name || '').toLowerCase()
+                if (KORUNACAK_ESYALAR.some(k => esyaAdi.includes(k))) continue
+
+                if (!sandiktaYerVarMi(item)) {
+                    continue
+                }
+
+                console.log(`  -> [HIZLI AKTARIM] ${item.count} adet ${item.name} sandığa aktarılıyor...`)
+                try {
+                    // Shift + Sol Tık (Mode 1, Button 0) -> Sunucu tarafında eşyayı anında sandığa aktarır
+                    await bot.clickWindow(slot, 0, 1)
+                    aktarilanSayisi++
+                    aktarimYapildi = true
+                    await bekle(250) // Anti-cheat ve paket senkronizasyonu için bekleme
+                } catch (hata) {
+                    console.log(`  [UYARI] Slot ${slot} (${item.name}) aktarılamadı: ${hata.message}`)
+                    const errLower = (hata.message || '').toLowerCase()
+                    if (errLower.includes('full') || errLower.includes('dolu') || errLower.includes('closed') || errLower.includes('kapandı')) {
+                        sandikDolu = true
+                        break
+                    }
+                }
+            }
+
+            if (sandikDolu) break
+        }
+
+        if (sandikTamamenDoluMu()) {
+            console.log(`[UYARI] Sandık tamamen dolu! Bazı eşyalar sandığa sığmadı.`)
+        }
         console.log(`[BAŞARILI] Sandığa aktarım tamamlandı! (${aktarilanSayisi} grup eşya aktarıldı)`)
     } catch (döngüHatasi) {
         console.log(`[HATA] Aktarım sırasında hata oluştu: ${döngüHatasi.message}`)
@@ -1560,7 +1616,10 @@ async function sandigaEsyalariKoy() {
         }
     }
 
-    await bekle(1000)
+    await bekle(800)
+    try {
+        botEvents.emit('envanter', envanterBilgisiAl())
+    } catch (e) { }
     return true
 }
 
