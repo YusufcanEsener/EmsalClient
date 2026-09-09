@@ -1,0 +1,38 @@
+{
+  "releases": [
+    {
+      "id": "rel-1-0-0",
+      "version": "1.0.0",
+      "title": "İlk Kararlı Sürüm",
+      "releaseType": "major",
+      "releaseDate": "2026-09-09",
+      "status": "published",
+      "mandatory": false,
+      "channel": "stable",
+      "changes": [
+        {
+          "type": "feature",
+          "description": "Mineflayer AFK bot motoru ve ada /is go otomasyonu"
+        },
+        {
+          "type": "feature",
+          "description": "Minyon ve arı kovanları canlı durum takibi"
+        },
+        {
+          "type": "feature",
+          "description": "%80 dolulukta otomatik bal hasadı ve sandığa aktarım"
+        },
+        {
+          "type": "feature",
+          "description": "Canlı envanter ve hotbar eşya görüntüleme paneli"
+        },
+        {
+          "type": "improvement",
+          "description": "Linear / Raycast esintili modern karanlık masaüstü arayüzü"
+        }
+      ],
+      "createdAt": "2026-09-09T00:00:00.000Z",
+      "updatedAt": "2026-09-09T00:00:00.000Z"
+    }
+  ]
+}

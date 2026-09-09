@@ -1,0 +1,88 @@
+{
+  "name": "minertower-afk",
+  "version": "1.0.0",
+  "description": "MinerTower AFK Bot ve Minyon Kontrol Paneli",
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node test/suite.test.js",
+    "bot-only": "node main.js",
+    "build": "electron-builder --win portable",
+    "dist": "electron-builder"
+  },
+  "keywords": [
+    "minecraft",
+    "mineflayer",
+    "minion",
+    "afk",
+    "electron"
+  ],
+  "author": "EmsalSiz",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^44.2.0",
+    "electron-builder": "^26.15.3"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9",
+    "mineflayer": "^4.39.0",
+    "mineflayer-pathfinder": "^2.4.5",
+    "semver": "^7.8.5",
+    "vec3": "^0.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/EmsalSiz/minertower-afk.git"
+  },
+  "build": {
+    "appId": "com.emsalsiz.minertowerafk",
+    "productName": "MinerTower AFK",
+    "directories": {
+      "output": "dist"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "EmsalSiz",
+        "repo": "minertower-afk"
+      }
+    ],
+    "files": [
+      "electron-main.js",
+      "main.js",
+      "preload.js",
+      "releases.json",
+      "src/**/*",
+      "ui/**/*",
+      "assets/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "MinerTower AFK"
+    },
+    "portable": {
+      "artifactName": "${productName}-portable.exe"
+    }
+  }
+}
