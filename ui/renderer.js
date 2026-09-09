@@ -1,5 +1,5 @@
 // ===================================================
-// MINERTOWER AFK - PROFESSIONAL RENDERER LOGIC v2
+// EMSALCLIENT - PROFESSIONAL RENDERER LOGIC v2
 // ===================================================
 
 let guncelMinyonlar = {}
@@ -1504,7 +1504,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 })
 
 // ===================================================
-// MINERTOWER AFK — PROFESYONEL SİSTEM YÖNETİCİSİ (v2.0)
+// EMSALCLIENT — PROFESYONEL SİSTEM YÖNETİCİSİ (v2.0)
 // Modüller: Splash, Güncelleme, Profiller, Ayarlar, Sürümler, Admin
 // ===================================================
 
@@ -1771,7 +1771,7 @@ function initProfessionalExtension() {
                 // Güncelleme sonrası ilk açılış: Yenilikleri göster
                 const release = await api.releases.getLatest(settings.updates ? settings.updates.channel : 'stable')
                 if (release && release.version === currentAppVersion && elWhatsNewModal) {
-                    if (elWhatsNewTitle) elWhatsNewTitle.textContent = `🎉 MinerTower AFK v${currentAppVersion}`
+                    if (elWhatsNewTitle) elWhatsNewTitle.textContent = `🎉 EmsalClient v${currentAppVersion}`
                     if (elWhatsNewSubtitle) elWhatsNewSubtitle.textContent = release.title || 'Uygulama başarıyla güncellendi.'
                     renderChangelogItems(elWhatsNewChangelogList, release.changes || [])
                     elWhatsNewModal.classList.add('active')
@@ -2011,7 +2011,7 @@ function initProfessionalExtension() {
                 const url = URL.createObjectURL(blob)
                 const a = document.createElement('a')
                 a.href = url
-                a.download = `minertower-profiles-${new Date().toISOString().split('T')[0]}.json`
+                a.download = `emsalclient-profiles-${new Date().toISOString().split('T')[0]}.json`
                 a.click()
                 URL.revokeObjectURL(url)
                 showToast('Profiller JSON dosyası olarak indirildi.', 'success')

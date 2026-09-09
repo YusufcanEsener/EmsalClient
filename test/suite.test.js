@@ -3,7 +3,7 @@ const path = require('path')
 const fs = require('fs')
 
 console.log('====================================================')
-console.log('   MINERTOWER AFK — AUTOMATED PRODUCTION TEST SUITE   ')
+console.log('   EMSALCLIENT — AUTOMATED PRODUCTION TEST SUITE   ')
 console.log('====================================================\n')
 
 let passCount = 0

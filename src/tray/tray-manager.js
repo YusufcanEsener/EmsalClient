@@ -23,7 +23,7 @@ class TrayManager {
 
         try {
             this.tray = new Tray(iconPath)
-            this.tray.setToolTip('MinerTower AFK')
+            this.tray.setToolTip('EmsalClient')
             this.updateMenu()
 
             this.tray.on('click', () => {
@@ -41,7 +41,7 @@ class TrayManager {
     updateBotStatus(statusText) {
         this.botStatus = statusText || 'Durduruldu'
         if (this.tray) {
-            this.tray.setToolTip(`MinerTower AFK - ${this.botStatus}`)
+            this.tray.setToolTip(`EmsalClient - ${this.botStatus}`)
             this.updateMenu()
         }
     }
@@ -54,7 +54,7 @@ class TrayManager {
 
         const contextMenu = Menu.buildFromTemplate([
             {
-                label: 'MinerTower AFK v2.0',
+                label: 'EmsalClient v1.0.0',
                 enabled: false
             },
             { type: 'separator' },

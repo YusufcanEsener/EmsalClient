@@ -20,7 +20,7 @@ function createWindow() {
         height: 860,
         minWidth: 980,
         minHeight: 680,
-        title: 'MinerTower AFK',
+        title: 'EmsalClient',
         icon: path.join(__dirname, 'assets', 'icon.png'),
         backgroundColor: '#080D16',
         frame: false,
@@ -250,7 +250,7 @@ ipcMain.handle('releases:delete-draft', (e, id) => releaseManager.deleteDraft(id
 // UYGULAMA YAŞAM DÖNGÜSÜ
 // ==========================================
 app.whenReady().then(() => {
-    logger.info('APP', `MinerTower AFK v${app.getVersion()} başlatılıyor...`)
+    logger.info('APP', `EmsalClient v${app.getVersion()} başlatılıyor...`)
 
     // 1. Gerekliyse eski verilerden otomatik migrasyon çalıştır
     runMigrationIfNeeded()

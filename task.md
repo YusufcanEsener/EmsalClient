@@ -1,4 +1,4 @@
-# MinerTower AFK — Profesyonel Dönüşüm Görev Listesi (task.md)
+# EmsalClient — Profesyonel Minecraft AFK & Ada Otomasyonu (task.md)
 
 Bu dosya, uygulamanın adım adım profesyonelleştirilmesini ve tamamlanan adımları takip etmek için oluşturulmuştur. Tamamlanan maddelerin üzeri çizilecek (`~~madde~~`) ve `[x]` olarak işaretlenecektir.
 

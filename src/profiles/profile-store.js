@@ -214,7 +214,7 @@ class ProfileStore {
         }))
 
         return JSON.stringify({
-            app: 'MinerTower AFK',
+            app: 'EmsalClient',
             version: '2.0.0',
             exportedAt: new Date().toISOString(),
             profiles: safeProfiles
