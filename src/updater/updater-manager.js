@@ -38,10 +38,18 @@ class UpdaterManager extends EventEmitter {
 
         try {
             const electron = require('electron')
-            if (electron.app) {
-                this.currentVersion = electron.app.getVersion() || '1.0.0'
+            if (electron.app && typeof electron.app.getVersion === 'function') {
+                this.currentVersion = electron.app.getVersion()
+            } else {
+                const pkg = require('../../package.json')
+                this.currentVersion = pkg.version || '1.0.2'
             }
-        } catch (e) { }
+        } catch (e) {
+            try {
+                const pkg = require('../../package.json')
+                this.currentVersion = pkg.version || '1.0.2'
+            } catch (e2) { }
+        }
 
         // Güncelleme kanalı ayarı
         const settings = settingsStore.get()

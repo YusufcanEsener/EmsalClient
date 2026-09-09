@@ -1,6 +1,40 @@
 {
   "releases": [
     {
+      "id": "rel-1-0-2",
+      "version": "1.0.2",
+      "title": "EmsalClient v1.0.2 — Envanter Boşaltma & Sürüm Senkronizasyonu",
+      "releaseType": "patch",
+      "releaseDate": "2026-09-09",
+      "status": "published",
+      "mandatory": false,
+      "channel": "stable",
+      "changes": [
+        {
+          "type": "fix",
+          "description": "Envanter boşaltma sırasında minyon kontrolüyle çakışmayı ve işlemlerin üst üste binmesini önleyen 'islemde' kilit mekanizması eklendi"
+        },
+        {
+          "type": "fix",
+          "description": "Dinamik sandık ve varil tespiti güçlendirildi; koordinatta sandık yoksa 25 blok yakınındaki sandığı otomatik bulup aktarma desteği sağlandı"
+        },
+        {
+          "type": "fix",
+          "description": "Sandığa eşya yatırma döngüsü güvenli hale getirildi, pencere kapatma ve lag/hata korumaları eklendi"
+        },
+        {
+          "type": "feature",
+          "description": "Sürüm geçmişi (changelog) modalına GitHub üzerinden uzaktan ve dinamik sürüm senkronizasyonu eklendi"
+        },
+        {
+          "type": "improvement",
+          "description": "Arayüzden ayarlanan hedef sandık konumu aktif profile kalıcı olarak kaydedilecek şekilde güncellendi"
+        }
+      ],
+      "createdAt": "2026-09-09T14:00:00.000Z",
+      "updatedAt": "2026-09-09T14:00:00.000Z"
+    },
+    {
       "id": "rel-1-0-1",
       "version": "1.0.1",
       "title": "EmsalClient v1.0.1 — Otomasyon & Giriş Güncellemesi",

@@ -2389,9 +2389,19 @@ function initProfessionalExtension() {
     }
 
     if (elBtnReleaseHistory) {
-        elBtnReleaseHistory.onclick = () => {
+        elBtnReleaseHistory.onclick = async () => {
             loadReleasesTimeline('all')
             openModal(elReleasesModal)
+            if (api.releases && typeof api.releases.sync === 'function') {
+                try {
+                    await api.releases.sync()
+                    if (elReleasesModal && elReleasesModal.classList.contains('active')) {
+                        const activeTab = elReleasesFilterTabs?.querySelector('.segmented-tab-btn.active')
+                        const channel = activeTab ? activeTab.getAttribute('data-channel') : 'all'
+                        loadReleasesTimeline(channel)
+                    }
+                } catch (e) { }
+            }
         }
     }
     if (elBtnReleasesKapat) elBtnReleasesKapat.onclick = () => closeModal(elReleasesModal)

@@ -108,6 +108,7 @@ const api = {
     },
     releases: {
         list: (channel) => ipcRenderer.invoke('releases:list', channel),
+        sync: () => ipcRenderer.invoke('releases:sync'),
         getLatest: (channel) => ipcRenderer.invoke('releases:get-latest', channel),
         validate: (data) => ipcRenderer.invoke('releases:validate', data),
         create: (data) => ipcRenderer.invoke('releases:create', data),

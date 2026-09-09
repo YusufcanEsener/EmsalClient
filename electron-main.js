@@ -264,6 +264,7 @@ ipcMain.handle('logs:open-folder', () => logger.openLogsFolder())
 // IPC HANDLERS - SÜRÜMLER (RELEASES & ADMIN)
 // ==========================================
 ipcMain.handle('releases:list', (e, channel) => releaseManager.getAll(channel))
+ipcMain.handle('releases:sync', () => releaseManager.syncWithRemote())
 ipcMain.handle('releases:get-latest', (e, channel) => releaseManager.getLatest(channel))
 ipcMain.handle('releases:validate', (e, data) => releaseManager.validate(data))
 ipcMain.handle('releases:create', (e, data) => releaseManager.create(data))
@@ -286,6 +287,11 @@ app.whenReady().then(() => {
 
     // 3. Ana pencereyi oluştur
     createWindow()
+
+    // 4. Uzak sürüm kataloğunu arka planda senkronize et
+    releaseManager.syncWithRemote().catch(err => {
+        logger.warn('RELEASES', 'Açılış sürüm senkronizasyonu atlandı: ' + err.message)
+    })
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {

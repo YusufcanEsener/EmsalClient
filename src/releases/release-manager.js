@@ -14,36 +14,56 @@ class ReleaseManager {
     _load() {
         if (this.releases) return this.releases
 
-        // 1. Önce varsa userData içindeki önbelleğe bak (en güncel sürüm listesi burada tutulur)
+        let cachedReleases = []
         if (fs.existsSync(this.cachePath)) {
             try {
                 const raw = fs.readFileSync(this.cachePath, 'utf8')
                 const parsed = JSON.parse(raw)
                 if (parsed && Array.isArray(parsed.releases)) {
-                    this.releases = parsed.releases
-                    return this.releases
+                    cachedReleases = parsed.releases
                 }
             } catch (err) {
                 logger.error('RELEASES', 'Önbellek sürüm dosyası okunamadı', err)
             }
         }
 
-        // 2. Yoksa paket içindeki bundled releases.json'a bak
+        let bundledReleases = []
         if (fs.existsSync(this.bundledReleasesPath)) {
             try {
                 const raw = fs.readFileSync(this.bundledReleasesPath, 'utf8')
                 const parsed = JSON.parse(raw)
                 if (parsed && Array.isArray(parsed.releases)) {
-                    this.releases = parsed.releases
-                    this._save()
-                    return this.releases
+                    bundledReleases = parsed.releases
                 }
             } catch (err) {
                 logger.error('RELEASES', 'Paket içi releases.json okunamadı', err)
             }
         }
 
-        this.releases = []
+        // Paket içindeki ve önbellekteki sürümleri birleştir
+        const map = new Map()
+        for (const r of bundledReleases) {
+            if (r && r.version) map.set(r.version, r)
+        }
+        for (const r of cachedReleases) {
+            if (r && r.version) {
+                if (map.has(r.version)) {
+                    const bundled = map.get(r.version)
+                    map.set(r.version, {
+                        ...bundled,
+                        ...r,
+                        changes: (bundled.changes && bundled.changes.length > 0) ? bundled.changes : (r.changes || [])
+                    })
+                } else {
+                    map.set(r.version, r)
+                }
+            }
+        }
+
+        this.releases = Array.from(map.values())
+            .sort((a, b) => semver.rcompare(a.version, b.version))
+
+        this._save()
         return this.releases
     }
 
@@ -235,29 +255,104 @@ class ReleaseManager {
         const current = this._load()
         let added = 0
         for (const remote of remoteList) {
+            if (!remote || !remote.version) continue
             const exists = current.find(c => c.version === remote.version)
             if (!exists && semver.valid(remote.version)) {
                 current.push({
-                    id: `rel-${crypto.randomUUID().substring(0, 8)}`,
-                    version: remote.version,
+                    id: remote.id || `rel-${crypto.randomUUID().substring(0, 8)}`,
+                    version: semver.clean(remote.version) || remote.version,
                     title: remote.title || `Sürüm ${remote.version}`,
-                    releaseType: 'patch',
+                    releaseType: remote.releaseType || 'patch',
                     releaseDate: remote.releaseDate || new Date().toISOString().split('T')[0],
                     status: remote.status || 'published',
                     mandatory: Boolean(remote.mandatory),
                     channel: remote.channel || (remote.version.includes('-') ? 'beta' : 'stable'),
-                    changes: remote.changes || [{ type: 'feature', description: 'Güncelleme yayınlandı' }],
+                    changes: Array.isArray(remote.changes) ? remote.changes : [{ type: 'feature', description: 'Güncelleme yayınlandı' }],
                     githubReleaseUrl: remote.githubReleaseUrl || null,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
+                    createdAt: remote.createdAt || new Date().toISOString(),
+                    updatedAt: remote.updatedAt || new Date().toISOString()
                 })
+                added++
+            } else if (exists && Array.isArray(remote.changes) && remote.changes.length > (exists.changes?.length || 0)) {
+                exists.title = remote.title || exists.title
+                exists.changes = remote.changes
                 added++
             }
         }
         if (added > 0) {
+            this.releases.sort((a, b) => semver.rcompare(a.version, b.version))
             this._save()
-            logger.info('RELEASES', `${added} adet uzak sürüm listeye eklendi`)
+            logger.info('RELEASES', `${added} adet uzak sürüm güncellendi/listeye eklendi`)
         }
+    }
+
+    async syncWithRemote() {
+        const https = require('https')
+        const fetchUrl = (url, headers = {}) => {
+            return new Promise((resolve, reject) => {
+                const req = https.get(url, { headers: { 'User-Agent': 'EmsalClient', ...headers } }, (res) => {
+                    if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                        return fetchUrl(res.headers.location, headers).then(resolve).catch(reject)
+                    }
+                    if (res.statusCode !== 200) {
+                        return reject(new Error(`HTTP ${res.statusCode}`))
+                    }
+                    let body = ''
+                    res.on('data', chunk => body += chunk)
+                    res.on('end', () => resolve(body))
+                })
+                req.on('error', reject)
+                req.setTimeout(8000, () => {
+                    req.destroy()
+                    reject(new Error('Zaman aşımı (timeout)'))
+                })
+            })
+        }
+
+        try {
+            logger.info('RELEASES', 'Uzak sürüm kataloğu senkronize ediliyor...')
+            // 1. Doğrudan raw repository releases.json'ı dene
+            try {
+                const rawJson = await fetchUrl('https://raw.githubusercontent.com/YusufcanEsener/EmsalClient/main/releases.json')
+                const parsed = JSON.parse(rawJson)
+                if (parsed && Array.isArray(parsed.releases)) {
+                    this.mergeRemoteReleases(parsed.releases)
+                    return this.getAll()
+                }
+            } catch (e1) {
+                logger.warn('RELEASES', 'Raw releases.json alınamadı, GitHub API deneniyor: ' + e1.message)
+            }
+
+            // 2. Fallback: GitHub Releases API
+            const ghRaw = await fetchUrl('https://api.github.com/repos/YusufcanEsener/EmsalClient/releases')
+            const ghReleases = JSON.parse(ghRaw)
+            if (Array.isArray(ghReleases)) {
+                const remoteList = ghReleases.map(r => {
+                    const cleanVer = semver.clean(r.tag_name) || r.tag_name.replace(/^v/, '')
+                    const changes = []
+                    if (r.body) {
+                        r.body.split('\n').forEach(line => {
+                            const trimmed = line.trim().replace(/^[-*•]\s*/, '')
+                            if (trimmed) changes.push({ type: 'improvement', description: trimmed })
+                        })
+                    }
+                    return {
+                        version: cleanVer,
+                        title: r.name || `EmsalClient v${cleanVer}`,
+                        releaseDate: r.published_at ? r.published_at.split('T')[0] : new Date().toISOString().split('T')[0],
+                        status: 'published',
+                        channel: r.prerelease ? 'beta' : 'stable',
+                        changes: changes.length > 0 ? changes : [{ type: 'feature', description: 'GitHub sürümü yayınlandı' }],
+                        githubReleaseUrl: r.html_url || null
+                    }
+                })
+                this.mergeRemoteReleases(remoteList)
+            }
+        } catch (err) {
+            logger.warn('RELEASES', 'Uzak sürüm senkronizasyonu başarısız: ' + err.message)
+        }
+
+        return this.getAll()
     }
 }
 

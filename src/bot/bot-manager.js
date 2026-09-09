@@ -185,7 +185,16 @@ class BotManager extends EventEmitter {
     }
 
     sandikAyarla() {
-        return botKontrol.sandikAyarla()
+        const res = botKontrol.sandikAyarla()
+        if (res && res.basarili && this.activeProfileId) {
+            const profile = this.getActiveProfile()
+            if (profile) {
+                profileStore.update(this.activeProfileId, {
+                    settings: { ...profile.settings, chestLocation: res.konum }
+                })
+            }
+        }
+        return res
     }
 
     testModuDegistir(yeniDurum) {

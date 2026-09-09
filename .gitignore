@@ -2,6 +2,7 @@
 # EMSALCLIENT — GITIGNORE (PRODUCTION & CLEAN REPO)
 # ===================================================
 
+yapilacaklar.txt
 # 1. Bağımlılıklar (Dependencies)
 node_modules/
 .pnp

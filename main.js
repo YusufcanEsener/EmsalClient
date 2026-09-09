@@ -1434,20 +1434,38 @@ async function minyondanEsyalariTopla(minyon) {
     return true
 }
 
-// ADIM 3: Hedef Sandığa Git ve Eşyaları Boşalt (Test modunda devre dışı)
+// ADIM 3: Hedef Sandığa Git ve Eşyaları Boşalt
 async function sandigaEsyalariKoy() {
-    let sandikX = AYARLAR.SANDIK_KONUMU.x
-    let sandikY = AYARLAR.SANDIK_KONUMU.y
-    let sandikZ = AYARLAR.SANDIK_KONUMU.z
+    if (!bot || !bot.entity) {
+        console.log('[UYARI] Bot oyunda değil!')
+        return false
+    }
 
-    if (sandikX === null) {
-        console.log('[BİLGİ] Sandık koordinatı belirtilmediği için etraftaki sandık taranıyor...')
+    const sandikIds = [
+        bot.registry.blocksByName.chest?.id,
+        bot.registry.blocksByName.trapped_chest?.id,
+        bot.registry.blocksByName.barrel?.id
+    ].filter(Boolean)
+
+    let sandikX = AYARLAR.SANDIK_KONUMU?.x ?? null
+    let sandikY = AYARLAR.SANDIK_KONUMU?.y ?? null
+    let sandikZ = AYARLAR.SANDIK_KONUMU?.z ?? null
+
+    // Kayıtlı koordinattaki bloğu kontrol et (gerçekten sandık/varil mi?)
+    let hedefBlok = null
+    if (sandikX !== null && sandikY !== null && sandikZ !== null) {
+        const blok = bot.blockAt(new Vec3(sandikX, sandikY, sandikZ))
+        if (blok && sandikIds.includes(blok.type)) {
+            hedefBlok = blok
+        }
+    }
+
+    // Eğer koordinat tanımlı değilse veya o koordinatta sandık yoksa etrafta ara (25 blok)
+    if (!hedefBlok) {
+        console.log('[BİLGİ] Kayıtlı koordinatta geçerli bir sandık bulunamadı, etraftaki sandık taranıyor...')
         const sandikBlok = bot.findBlock({
-            matching: [
-                bot.registry.blocksByName.chest.id,
-                bot.registry.blocksByName.trapped_chest.id
-            ],
-            maxDistance: 20
+            matching: sandikIds,
+            maxDistance: 25
         })
 
         if (!sandikBlok) {
@@ -1455,69 +1473,101 @@ async function sandigaEsyalariKoy() {
             return false
         }
 
+        hedefBlok = sandikBlok
         sandikX = sandikBlok.position.x
         sandikY = sandikBlok.position.y
         sandikZ = sandikBlok.position.z
+
+        // Otomatik bulunan geçerli sandığı kaydet
+        AYARLAR.SANDIK_KONUMU = { x: sandikX, y: sandikY, z: sandikZ }
+        console.log(`[AYAR] Geçerli sandık konumu otomatik güncellendi: X:${sandikX}, Y:${sandikY}, Z:${sandikZ}`)
+        try {
+            botEvents.emit('sandikGuncellendi', AYARLAR.SANDIK_KONUMU)
+        } catch (e) { }
     }
 
     console.log(`\n[YÜRÜME] Sandığa gidiliyor: X=${sandikX}, Y=${sandikY}, Z=${sandikZ}`)
     try {
-        const hedef = new goals.GoalNear(sandikX, sandikY, sandikZ, 2)
-        await bot.pathfinder.goto(hedef)
+        const botMesafe = bot.entity.position.distanceTo(new Vec3(sandikX, sandikY, sandikZ))
+        if (botMesafe > 3.2) {
+            const hedef = new goals.GoalNear(sandikX, sandikY, sandikZ, 2)
+            await bot.pathfinder.goto(hedef)
+            await bekle(1000)
+        }
     } catch (err) {
         console.log(`[HATA] Sandığa yürünürken hata oluştu: ${err.message}`)
         return false
     }
 
-    await bekleRastgele(2000, 3000)
-
+    // Sandık bloğunu tekrar doğrula
     const blok = bot.blockAt(new Vec3(sandikX, sandikY, sandikZ))
-    if (!blok) {
-        console.log('[HATA] Sandık bloğu okunamadı!')
+    if (!blok || !sandikIds.includes(blok.type)) {
+        console.log('[HATA] Sandık bloğu okunamadı veya geçerli bir sandık değil!')
         return false
     }
 
     console.log('[İŞLEM] Sandık açılıyor...')
-    const sandikPenceresi = await bot.openChest(blok)
-    await bekleRastgele(2000, 3000)
+    let sandikPenceresi = null
+    try {
+        sandikPenceresi = await bot.openChest(blok)
+    } catch (err) {
+        console.log(`[HATA] Sandık açılamadı: ${err.message}`)
+        return false
+    }
 
-    const cantadakiEsyalar = bot.inventory.items()
-    for (let i = 0; i < cantadakiEsyalar.length; i++) {
-        const esya = cantadakiEsyalar[i]
-        const esyaAdi = esya.name.toLowerCase()
+    await bekle(1200)
 
-        let korunacakMi = false
-        for (let j = 0; j < KORUNACAK_ESYALAR.length; j++) {
-            if (esyaAdi.includes(KORUNACAK_ESYALAR[j])) {
-                korunacakMi = true
+    let aktarilanSayisi = 0
+    let sandikDolu = false
+
+    try {
+        let guvenlikSayaci = 0
+        while (!sandikDolu && guvenlikSayaci < 64) {
+            guvenlikSayaci++
+            const cantadakiEsyalar = bot.inventory.items()
+            const aktarilacakEsya = cantadakiEsyalar.find(esya => {
+                const esyaAdi = esya.name.toLowerCase()
+                return !KORUNACAK_ESYALAR.some(k => esyaAdi.includes(k))
+            })
+
+            if (!aktarilacakEsya) {
+                break
+            }
+
+            try {
+                console.log(`  -> ${aktarilacakEsya.count} adet ${aktarilacakEsya.name} sandığa aktarılıyor...`)
+                await sandikPenceresi.deposit(aktarilacakEsya.type, null, aktarilacakEsya.count)
+                aktarilanSayisi++
+                await bekle(400)
+            } catch (hata) {
+                console.log(`[UYARI] ${aktarilacakEsya.name} aktarılamadı: ${hata.message}`)
+                const errLower = (hata.message || '').toLowerCase()
+                if (errLower.includes('full') || errLower.includes('dolu') || errLower.includes('closed') || errLower.includes('kapandı')) {
+                    sandikDolu = true
+                }
                 break
             }
         }
 
-        if (!korunacakMi) {
+        console.log(`[BAŞARILI] Sandığa aktarım tamamlandı! (${aktarilanSayisi} grup eşya aktarıldı)`)
+    } catch (döngüHatasi) {
+        console.log(`[HATA] Aktarım sırasında hata oluştu: ${döngüHatasi.message}`)
+    } finally {
+        if (sandikPenceresi) {
             try {
-                console.log(`  -> ${esya.count} adet ${esya.name} sandığa koyuluyor...`)
-                await sandikPenceresi.deposit(esya.type, null, esya.count)
-                await bekle(600)
-            } catch (hata) {
-                console.log(`[UYARI] Eşya aktarılamadı (sandık dolmuş olabilir): ${hata.message}`)
-                break
-            }
+                sandikPenceresi.close()
+            } catch (e) { }
         }
     }
 
-    await bekleRastgele(1500, 2500)
-    sandikPenceresi.close()
-    console.log('[BAŞARILI] Sandığa aktarım tamamlandı!')
-    await bekleRastgele(2000, 3000)
-
+    await bekle(1000)
     return true
 }
 
 // ADIM 4: Tüm Aşamaları Birleştiren Ana Görev
 async function otomatikMinyonGorevi() {
     if (islemde) {
-        console.log('[BİLGİ] Zaten devam eden bir işlem var, bekleniyor...')
+        console.log('[BİLGİ] Bot şu anda başka bir işlem yapıyor (meşgul), minyon/kovan kontrolü bu döngüde ertelendi.')
         return
     }
 
@@ -2062,6 +2112,10 @@ const botKontrol = {
             console.log('[UYARI] Bot adada değil veya henüz başlatılmadı!')
             return { basarili: false, mesaj: 'Bot adada değil veya henüz başlatılmadı!' }
         }
+        if (islemde) {
+            console.log('[UYARI] Bot şu anda başka bir işlem yapıyor, lütfen bekleyin.')
+            return { basarili: false, mesaj: 'Bot şu anda meşgul!' }
+        }
         console.log('[KONTROL] Minyonları tara isteği alındı...')
         return await otomatikMinyonGorevi()
     },
@@ -2160,25 +2214,41 @@ const botKontrol = {
             console.log('[UYARI] Bot adada değil veya henüz başlatılmadı!')
             return { basarili: false, mesaj: 'Bot adada değil veya henüz başlatılmadı!' }
         }
-        console.log('\n[İŞLEM] Envanteri boşalt (sandığa aktarım) başlatılıyor...')
-        const sonuc = await sandigaEsyalariKoy()
-        if (afkKonumu) {
-            try {
-                await bot.pathfinder.goto(new goals.GoalNear(afkKonumu.x, afkKonumu.y, afkKonumu.z, 1))
-            } catch (e) { }
+        if (islemde) {
+            console.log('[UYARI] Bot şu anda başka bir işlem yapıyor, lütfen bekleyin.')
+            return { basarili: false, mesaj: 'Bot şu anda meşgul! Lütfen mevcut işlemin bitmesini bekleyin.' }
         }
-        botEvents.emit('envanter', envanterBilgisiAl())
-        if (sonuc) {
-            console.log('[BAŞARILI] Envanterdeki eşyalar başarıyla sandığa aktarıldı.')
-            return { basarili: true, mesaj: 'Envanter başarıyla sandığa boşaltıldı!' }
-        } else {
-            return { basarili: false, mesaj: 'Sandığa aktarım yapılamadı! (Yakında sandık bulunamadı veya ulaşılamadı)' }
+        islemde = true
+        try {
+            console.log('\n[İŞLEM] Envanteri boşalt (sandığa aktarım) başlatılıyor...')
+            const sonuc = await sandigaEsyalariKoy()
+            if (afkKonumu) {
+                try {
+                    await bot.pathfinder.goto(new goals.GoalNear(afkKonumu.x, afkKonumu.y, afkKonumu.z, 1))
+                } catch (e) { }
+            }
+            botEvents.emit('envanter', envanterBilgisiAl())
+            if (sonuc) {
+                console.log('[BAŞARILI] Envanterdeki eşyalar başarıyla sandığa aktarıldı.')
+                return { basarili: true, mesaj: 'Envanter başarıyla sandığa boşaltıldı!' }
+            } else {
+                return { basarili: false, mesaj: 'Sandığa aktarım yapılamadı! (Sandık bulunamadı veya ulaşılamadı)' }
+            }
+        } catch (err) {
+            console.log(`[HATA] Envanter boşaltma hatası: ${err.message}`)
+            return { basarili: false, mesaj: `Hata: ${err.message}` }
+        } finally {
+            islemde = false
         }
     },
     topla: async () => {
         if (!bot || !adada) {
             console.log('[UYARI] Bot adada değil veya henüz başlatılmadı!')
             return { basarili: false, mesaj: 'Bot adada değil veya henüz başlatılmadı!' }
+        }
+        if (islemde) {
+            console.log('[UYARI] Bot şu anda başka bir işlem yapıyor, lütfen bekleyin.')
+            return { basarili: false, mesaj: 'Bot şu anda meşgul!' }
         }
         console.log('[KONTROL] Tümünü topla isteği alındı...')
         const eskiMod = AYARLAR.SADECE_BILGI_MODU
@@ -2192,25 +2262,28 @@ const botKontrol = {
             console.log('[UYARI] Bot oyunda değil, sandık aranamaz.')
             return { basarili: false, mesaj: 'Bot henüz oyunda değil.' }
         }
+        const sandikIds = [
+            bot.registry.blocksByName.chest?.id,
+            bot.registry.blocksByName.trapped_chest?.id,
+            bot.registry.blocksByName.barrel?.id
+        ].filter(Boolean)
+
         const yakinSandik = bot.findBlock({
-            matching: [
-                bot.registry.blocksByName.chest.id,
-                bot.registry.blocksByName.trapped_chest.id
-            ],
-            maxDistance: 8
+            matching: sandikIds,
+            maxDistance: 12
         })
         if (yakinSandik) {
             AYARLAR.SANDIK_KONUMU = {
-                x: yakinSandik.position.x,
-                y: yakinSandik.position.y,
-                z: yakinSandik.position.z
+                x: Math.round(yakinSandik.position.x),
+                y: Math.round(yakinSandik.position.y),
+                z: Math.round(yakinSandik.position.z)
             }
             console.log(`[AYAR] Hedef sandık kaydedildi: X:${AYARLAR.SANDIK_KONUMU.x}, Y:${AYARLAR.SANDIK_KONUMU.y}, Z:${AYARLAR.SANDIK_KONUMU.z}`)
             botEvents.emit('sandikGuncellendi', AYARLAR.SANDIK_KONUMU)
             return { basarili: true, konum: AYARLAR.SANDIK_KONUMU }
         } else {
-            console.log('[UYARI] 8 blok yakınında sandık bulunamadı!')
-            return { basarili: false, mesaj: '8 blok yakınında sandık bulunamadı!' }
+            console.log('[UYARI] 12 blok yakınında sandık veya varil bulunamadı!')
+            return { basarili: false, mesaj: '12 blok yakınında sandık bulunamadı!' }
         }
     },
     testModuDegistir: (yeniDurum) => {
