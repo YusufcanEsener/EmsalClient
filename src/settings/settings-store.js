@@ -13,8 +13,8 @@ const VARSAYILAN_AYARLAR = {
     },
     application: {
         startWithWindows: false,
-        minimizeToTray: true,
-        closeToTray: true
+        minimizeToTray: false,
+        closeToTray: false
     },
     notifications: {
         enableNotifications: true,

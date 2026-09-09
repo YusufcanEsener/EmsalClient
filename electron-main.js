@@ -35,9 +35,6 @@ function createWindow() {
 
     mainWindow.loadFile(path.join(__dirname, 'ui', 'index.html'))
 
-    // Başlangıçta tam ekran aç (kullanıcı dilerse pencereyi küçültebilir)
-    mainWindow.maximize()
-
     mainWindow.on('maximize', () => {
         if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.webContents.send('window:state-changed', { isMaximized: true })
@@ -168,6 +165,7 @@ botManager.on('sunucuGuncellendi', (data) => {
 // ==========================================
 ipcMain.handle('app:get-version', () => app.getVersion())
 ipcMain.handle('app:get-platform', () => process.platform)
+ipcMain.handle('window:is-maximized', () => (mainWindow && !mainWindow.isDestroyed() ? mainWindow.isMaximized() : false))
 
 ipcMain.on('window:minimize', () => {
     if (mainWindow) mainWindow.minimize()

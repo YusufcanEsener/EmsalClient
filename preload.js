@@ -5,6 +5,7 @@ const api = {
     app: {
         getVersion: () => ipcRenderer.invoke('app:get-version'),
         getPlatform: () => ipcRenderer.invoke('app:get-platform'),
+        isMaximized: () => ipcRenderer.invoke('window:is-maximized'),
         minimize: () => ipcRenderer.send('window:minimize'),
         maximize: () => ipcRenderer.send('window:maximize'),
         close: () => ipcRenderer.send('window:close'),

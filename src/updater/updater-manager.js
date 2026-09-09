@@ -145,13 +145,20 @@ class UpdaterManager extends EventEmitter {
         const settings = settingsStore.get()
         const channel = settings.updates.channel || 'stable'
 
-        if (autoUpdater) {
+        let isPackaged = false
+        try {
+            const electron = require('electron')
+            isPackaged = Boolean(electron.app && electron.app.isPackaged)
+        } catch (e) { }
+
+        this.status = 'checking'
+        this.lastError = null
+        this._broadcast('updater:status', this.getState())
+
+        if (autoUpdater && isPackaged) {
             autoUpdater.channel = channel
             autoUpdater.allowPrerelease = (channel === 'beta')
             try {
-                this.status = 'checking'
-                this.lastError = null
-                this._broadcast('updater:status', this.getState())
                 const result = await autoUpdater.checkForUpdates()
                 return { success: true, result }
             } catch (err) {
@@ -167,8 +174,9 @@ class UpdaterManager extends EventEmitter {
             }
         }
 
-        // autoUpdater yoksa (geliştirme modu fallback)
-        logger.info('UPDATER', 'Geliştirme modu: electron-updater pasif, yerel sürüm kontrol ediliyor.')
+        // Geliştirme modu fallback (paketli değilken autoUpdater atlar)
+        logger.info('UPDATER', 'Geliştirme / test modu: yerel sürüm kontrolü yapılıyor.')
+        await new Promise(r => setTimeout(r, 600))
         const latest = releaseManager.getLatest(channel)
         if (latest && semver.gt(latest.version, this.currentVersion) && latest.status === 'published') {
             this.status = 'available'

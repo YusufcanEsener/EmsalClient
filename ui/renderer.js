@@ -89,22 +89,39 @@ const elBtnMaximize = document.getElementById('btnMaximize')
 const elBtnClose = document.getElementById('btnClose')
 const elIconMaximize = document.getElementById('iconMaximize')
 
+function setMaximizeButtonVisual(isMax) {
+    if (!elIconMaximize) return
+    if (isMax) {
+        elIconMaximize.innerHTML = '<rect x="6" y="6" width="14" height="14" rx="2"></rect><path d="M4 14V4h10"></path>'
+        if (elBtnMaximize) elBtnMaximize.title = 'Önceki Boyuta Dön'
+    } else {
+        elIconMaximize.innerHTML = '<rect x="3" y="3" width="18" height="18" rx="2"></rect>'
+        if (elBtnMaximize) elBtnMaximize.title = 'Büyüt / Tam Ekran'
+    }
+}
+
 if (elBtnMinimize) {
-    elBtnMinimize.addEventListener('click', () => {
+    elBtnMinimize.addEventListener('click', (e) => {
+        e.preventDefault()
+        e.stopPropagation()
         if (window.api?.app?.minimize) window.api.app.minimize()
         else if (window.electronAPI?.windowMinimize) window.electronAPI.windowMinimize()
     })
 }
 
 if (elBtnMaximize) {
-    elBtnMaximize.addEventListener('click', () => {
+    elBtnMaximize.addEventListener('click', (e) => {
+        e.preventDefault()
+        e.stopPropagation()
         if (window.api?.app?.maximize) window.api.app.maximize()
         else if (window.electronAPI?.windowMaximize) window.electronAPI.windowMaximize()
     })
 }
 
 if (elBtnClose) {
-    elBtnClose.addEventListener('click', () => {
+    elBtnClose.addEventListener('click', (e) => {
+        e.preventDefault()
+        e.stopPropagation()
         if (window.api?.app?.close) window.api.app.close()
         else if (window.electronAPI?.windowClose) window.electronAPI.windowClose()
     })
@@ -112,16 +129,14 @@ if (elBtnClose) {
 
 if (window.api?.app?.onWindowState) {
     window.api.app.onWindowState((state) => {
-        if (elIconMaximize) {
-            if (state && state.isMaximized) {
-                elIconMaximize.innerHTML = '<rect x="6" y="6" width="14" height="14" rx="2"></rect><path d="M4 14V4h10"></path>'
-                if (elBtnMaximize) elBtnMaximize.title = 'Önceki Boyuta Dön'
-            } else {
-                elIconMaximize.innerHTML = '<rect x="3" y="3" width="18" height="18" rx="2"></rect>'
-                if (elBtnMaximize) elBtnMaximize.title = 'Büyüt / Tam Ekran'
-            }
+        if (state && typeof state.isMaximized === 'boolean') {
+            setMaximizeButtonVisual(state.isMaximized)
         }
     })
+}
+
+if (window.api?.app?.isMaximized) {
+    window.api.app.isMaximized().then(isMax => setMaximizeButtonVisual(isMax)).catch(() => {})
 }
 
 // ===================================================
@@ -1820,6 +1835,12 @@ function initProfessionalExtension() {
     if (elBtnSplashContinue) elBtnSplashContinue.onclick = () => closeSplash()
     if (elBtnSplashRetry) elBtnSplashRetry.onclick = () => api.updater.check()
     if (elTopbarUpdateBadge) elTopbarUpdateBadge.onclick = () => openSplash('available')
+
+    // Başlangıç Açılış Deneyimi (Splash Ekranı ile Başlatma)
+    openSplash('checking')
+    setTimeout(() => {
+        api.updater.check().catch(() => {})
+    }, 250)
 
     // ---------------------------------------------------
     // 3. WHAT'S NEW (YENİLİKLER) EKRANI
