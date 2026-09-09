@@ -442,20 +442,21 @@ function skyblockaGecildiKontrol(kaynak = 'Bilinmiyor') {
 }
 
 function adayaGit() {
-    if (!bot || adada || isGoGonderildi) return
+    if (!bot || adada) return
     isGoGonderildi = true
-    const adaKomutu = AYARLAR.ADA_SAHIBI ? `/is go ${AYARLAR.ADA_SAHIBI}` : '/is go'
+    const adaSahibi = AYARLAR.ADA_SAHIBI || 'EmsalSizOFC'
+    const adaKomutu = `/is go ${adaSahibi}`
     console.log(`[İŞLEM] ${adaKomutu} gönderiliyor...`)
     bot.chat(adaKomutu)
 
-    // /is go gönderildikten 5 saniye sonra adaya ulaşıldığını varsayıp kontrolü başlat
+    // /is go gönderildikten 8 saniye sonra adaya ulaşıldığını varsayıp kontrolü başlat
     if (isGoRetryTimeout) clearTimeout(isGoRetryTimeout)
     isGoRetryTimeout = setTimeout(() => {
         if (!adada) {
             console.log('[BİLGİ] Ada geçiş süresi tamamlandı, ada modu başlatılıyor...')
             adayaUlasildi()
         }
-    }, 5000)
+    }, 8000)
 }
 
 function adayaUlasildi() {
@@ -1750,14 +1751,35 @@ function createBot() {
             setTimeout(adayaUlasildi, 2000)
         }
 
-        // 4. Ada sunucusu dolu ise 10 saniye sonra tekrar /is go dene
-        if (isGoGonderildi && !adada && (temizMsg.includes('server is full') || temizMsg.includes('sunucu dolu'))) {
-            console.log('[UYARI] Ada sunucusu dolu! 10 saniye sonra tekrar /is go denenecek...')
-            if (isGoRetryTimeout) clearTimeout(isGoRetryTimeout)
-            isGoRetryTimeout = setTimeout(() => {
-                isGoGonderildi = false
-                adayaGit()
-            }, 10000)
+        // 4. Adaya aktarılamadı (unable to connect, sunucu dolu, vb.) mesajı gelirse tekrar /is go dene
+        const adayaGirisBasarisiz =
+            temizMsg.includes('unable to connect') ||
+            temizMsg.includes('please try again later') ||
+            temizMsg.includes('server is full') ||
+            temizMsg.includes('sunucu dolu') ||
+            temizMsg.includes('adana baglanilamadi') ||
+            temizMsg.includes('sunucuya baglanilamadi') ||
+            temizMsg.includes('/minyon [liste')
+
+        if (adayaGirisBasarisiz) {
+            const adaSahibi = AYARLAR.ADA_SAHIBI || 'EmsalSizOFC'
+            const adaKomutu = `/is go ${adaSahibi}`
+            console.log(`[UYARI] Adaya bağlanılamadı ("${msg}")! 5 saniye sonra tekrar ${adaKomutu} gönderilecek...`)
+            if (isGoRetryTimeout) {
+                clearTimeout(isGoRetryTimeout)
+                isGoRetryTimeout = null
+            }
+            if (kontrolZamanlayici) {
+                clearInterval(kontrolZamanlayici)
+                kontrolZamanlayici = null
+            }
+            adada = false
+            isGoGonderildi = false
+            setTimeout(() => {
+                if (!adada && bot) {
+                    adayaGit()
+                }
+            }, 5000)
         }
     })
 
@@ -1772,7 +1794,14 @@ function createBot() {
 
     bot.on('respawn', () => {
         envanterDinleyicileriniBagla()
-        if (girisBasarili && !inSkyblock) {
+        if (girisBasarili && inSkyblock && isGoGonderildi && !adada) {
+            console.log('[DURUM] Ada sunucusuna geçiş algılandı (Respawn/BungeeCord). Ada modu başlatılıyor...')
+            if (isGoRetryTimeout) {
+                clearTimeout(isGoRetryTimeout)
+                isGoRetryTimeout = null
+            }
+            setTimeout(adayaUlasildi, 2500)
+        } else if (girisBasarili && !inSkyblock) {
             setTimeout(() => {
                 if (!inSkyblock && bot && bot.scoreboard) {
                     const sb = bot.scoreboard['1'] || bot.scoreboard.sidebar || (bot.scoreboards && Object.values(bot.scoreboards)[0])
