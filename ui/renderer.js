@@ -100,30 +100,45 @@ function setMaximizeButtonVisual(isMax) {
     }
 }
 
+window.minimizeApp = (e) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (window.api?.app?.minimize) window.api.app.minimize()
+    else if (window.electronAPI?.windowMinimize) window.electronAPI.windowMinimize()
+}
+
+window.maximizeApp = (e) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (window.api?.app?.maximize) window.api.app.maximize()
+    else if (window.electronAPI?.windowMaximize) window.electronAPI.windowMaximize()
+}
+
+window.closeApp = (e) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (window.api?.app?.close) window.api.app.close()
+    else if (window.electronAPI?.windowClose) window.electronAPI.windowClose()
+}
+
 if (elBtnMinimize) {
-    elBtnMinimize.addEventListener('click', (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        if (window.api?.app?.minimize) window.api.app.minimize()
-        else if (window.electronAPI?.windowMinimize) window.electronAPI.windowMinimize()
-    })
+    elBtnMinimize.onclick = window.minimizeApp
+    elBtnMinimize.addEventListener('click', window.minimizeApp)
 }
 
 if (elBtnMaximize) {
-    elBtnMaximize.addEventListener('click', (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        if (window.api?.app?.maximize) window.api.app.maximize()
-        else if (window.electronAPI?.windowMaximize) window.electronAPI.windowMaximize()
-    })
+    elBtnMaximize.onclick = window.maximizeApp
+    elBtnMaximize.addEventListener('click', window.maximizeApp)
 }
 
 if (elBtnClose) {
-    elBtnClose.addEventListener('click', (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        if (window.api?.app?.close) window.api.app.close()
-        else if (window.electronAPI?.windowClose) window.electronAPI.windowClose()
+    elBtnClose.onclick = window.closeApp
+    elBtnClose.addEventListener('click', window.closeApp)
+}
+
+// Başlık çubuğuna çift tıklayarak tam ekran / önceki boyut geçişi
+const elAppTopbar = document.querySelector('.app-topbar')
+if (elAppTopbar) {
+    elAppTopbar.addEventListener('dblclick', (e) => {
+        if (e.target.closest('.window-controls') || e.target.closest('button') || e.target.closest('input')) return
+        window.maximizeApp(e)
     })
 }
 

@@ -24,6 +24,10 @@ function createWindow() {
         icon: path.join(__dirname, 'assets', 'icon.png'),
         backgroundColor: '#080D16',
         frame: false,
+        resizable: true,
+        maximizable: true,
+        minimizable: true,
+        closable: true,
         autoHideMenuBar: true,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
@@ -168,21 +172,29 @@ ipcMain.handle('app:get-platform', () => process.platform)
 ipcMain.handle('window:is-maximized', () => (mainWindow && !mainWindow.isDestroyed() ? mainWindow.isMaximized() : false))
 
 ipcMain.on('window:minimize', () => {
-    if (mainWindow) mainWindow.minimize()
+    if (!mainWindow || mainWindow.isDestroyed()) return
+    logger.info('APP', '[WINDOW] window:minimize tetiklendi')
+    mainWindow.minimize()
 })
 
 ipcMain.on('window:maximize', () => {
-    if (mainWindow) {
-        if (mainWindow.isMaximized()) {
-            mainWindow.unmaximize()
-        } else {
-            mainWindow.maximize()
-        }
+    if (!mainWindow || mainWindow.isDestroyed()) return
+    const wasMax = mainWindow.isMaximized()
+    logger.info('APP', `[WINDOW] window:maximize tetiklendi (mevcut isMaximized: ${wasMax})`)
+    if (wasMax) {
+        mainWindow.unmaximize()
+    } else {
+        mainWindow.maximize()
     }
+    const isNowMax = mainWindow.isMaximized()
+    mainWindow.webContents.send('window:state-changed', { isMaximized: isNowMax })
 })
 
 ipcMain.on('window:close', () => {
-    if (mainWindow) mainWindow.close()
+    if (!mainWindow || mainWindow.isDestroyed()) return
+    logger.info('APP', '[WINDOW] window:close tetiklendi')
+    app.isQuitting = true
+    mainWindow.close()
 })
 
 // ==========================================
