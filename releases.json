@@ -1,6 +1,30 @@
 {
   "releases": [
     {
+      "id": "rel-1-0-5",
+      "version": "1.0.5",
+      "title": "EmsalClient v1.0.5 — Yüksek Çözünürlüklü Masaüstü İkonu & Görsel Netlik İyileştirmesi",
+      "releaseType": "patch",
+      "releaseDate": "2026-09-09",
+      "status": "published",
+      "mandatory": false,
+      "channel": "stable",
+      "changes": [
+        {
+          "type": "fix",
+          "description": "Masaüstünde ikonun siyah kutu içinde karanlık ve anlaşılmaz görünmesi sorunu çözüldü; şeffaf arka planlı, yüksek kontrastlı neon squircle amblem tasarımına geçildi"
+        },
+        {
+          "type": "feature",
+          "description": "Windows standartlarına uygun 7 kademeli çoklu çözünürlüklü altın standart .ico paketi eklendi (256x256, 128x128, 64x64, 48x48, 32x32, 24x24, 16x16)"
+        },
+        {
+          "type": "feature",
+          "description": "Masaüstü (48x48), Görev Çubuğu (32x32) ve Sistem Tepsisi (16x16) için özel piksel optimizasyonu ve kristal netlik sağlandı"
+        }
+      ]
+    },
+    {
       "id": "rel-1-0-4",
       "version": "1.0.4",
       "title": "EmsalClient v1.0.4 — Kesintisiz Lobi/Skyblock Giriş Akışı, Hasat Analitiği & Taşma Koruması",

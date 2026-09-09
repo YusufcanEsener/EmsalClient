@@ -21,7 +21,9 @@ function createWindow() {
         minWidth: 980,
         minHeight: 680,
         title: 'EmsalClient',
-        icon: path.join(__dirname, 'assets', 'icon.png'),
+        icon: process.platform === 'win32'
+            ? path.join(__dirname, 'assets', 'icon.ico')
+            : path.join(__dirname, 'assets', 'icon.png'),
         backgroundColor: '#080D16',
         frame: false,
         resizable: true,
