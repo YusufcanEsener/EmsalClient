@@ -39,13 +39,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload stable.yml and Publish Release
+      - name: Upload Artifacts and Publish Release
         if: success()
         shell: pwsh
         run: |
           if (Test-Path dist/latest.yml) {
-            Copy-Item dist/latest.yml dist/stable.yml
-            gh release upload ${{ github.ref_name }} dist/stable.yml --clobber
+            Copy-Item dist/latest.yml dist/stable.yml -Force
+          }
+          $files = Get-ChildItem -Path dist -Include *.exe,*.yml,*.blockmap -File
+          if ($files) {
+            gh release upload ${{ github.ref_name }} $files.FullName --clobber
           }
           gh release edit ${{ github.ref_name }} --draft=false --latest
         env:

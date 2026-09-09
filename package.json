@@ -45,7 +45,8 @@
       {
         "provider": "github",
         "owner": "YusufcanEsener",
-        "repo": "EmsalClient"
+        "repo": "EmsalClient",
+        "releaseType": "release"
       }
     ],
     "files": [
