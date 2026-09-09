@@ -118,9 +118,8 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    flex-shrink: 1;
+    flex-shrink: 0;
     min-width: 0;
-    overflow: hidden;
 }
 
 .app-brand {
@@ -305,6 +304,15 @@ body {
     flex-shrink: 0;
     transition: all 0.2s ease;
     -webkit-app-region: no-drag;
+    max-width: 175px;
+    overflow: hidden;
+}
+
+.active-profile-pill #topbarProfileName {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
 }
 
 .active-profile-pill:hover {
@@ -334,9 +342,7 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
-    flex-shrink: 1;
-    min-width: 0;
-    overflow: hidden;
+    flex-shrink: 0;
     margin-left: auto;
     -webkit-app-region: no-drag;
 }
@@ -2777,27 +2783,32 @@ input:checked + .slider-sm:before {
 /* ===================================================
    RESPONSIVE TOPBAR ADAPTATION
    =================================================== */
-@media (max-width: 1400px) {
+@media (max-width: 1450px) {
     #sandikPill { display: none !important; }
+    .uptime-pill { display: none !important; }
 }
 
-@media (max-width: 1300px) {
+@media (max-width: 1320px) {
     #doluMinyonPill { display: none !important; }
-}
-
-@media (max-width: 1200px) {
     #envanterPill { display: none !important; }
     .current-server-pill .current-server-label { display: none !important; }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1180px) {
     #kovanSayisiPill { display: none !important; }
-    .server-status-pill .user-chip { display: none !important; }
+    #minyonSayisiPill { display: none !important; }
+    .active-profile-pill { max-width: 140px; }
 }
 
-@media (max-width: 980px) {
-    #minyonSayisiPill { display: none !important; }
-    #topbarProfileName { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 1020px) {
+    .current-server-pill { display: none !important; }
+    .server-status-pill .user-chip { display: none !important; }
+    .active-profile-pill { max-width: 115px; }
+}
+
+@media (max-width: 880px) {
+    .brand-pill { display: none !important; }
+    #topbarProfileName { max-width: 75px; }
 }
 
 
