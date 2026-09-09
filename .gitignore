@@ -1,6 +1,5 @@
 # Bağımlılıklar
 node_modules/
-package-lock.json
 
 # Derleme ve Çıktı Dosyaları
 dist/
