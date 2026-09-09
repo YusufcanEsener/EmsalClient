@@ -189,20 +189,28 @@ class UpdaterManager extends EventEmitter {
     }
 
     async downloadUpdate() {
-        if (!autoUpdater) {
-            logger.warn('UPDATER', 'Geliştirme ortamında indirme simüle ediliyor...')
+        let isPackaged = false
+        try {
+            const electron = require('electron')
+            isPackaged = Boolean(electron.app && electron.app.isPackaged)
+        } catch (e) { }
+
+        // Geliştirme modu veya autoUpdater olmayan ortamda simüle et
+        if (!autoUpdater || !isPackaged) {
+            logger.warn('UPDATER', 'Geliştirme / test ortamında güncelleme indirmesi simüle ediliyor...')
             this.status = 'downloading'
+            this._broadcast('updater:status', this.getState())
             let p = 0
             const interval = setInterval(() => {
                 p += 25
-                this.downloadProgress = { percent: p, transferred: p * 1000, total: 100000 }
+                this.downloadProgress = { percent: p, transferred: p * 1000, total: 100000, bytesPerSecond: 256000 }
                 this._broadcast('updater:progress', this.downloadProgress)
                 if (p >= 100) {
                     clearInterval(interval)
                     this.status = 'downloaded'
                     this._broadcast('updater:status', this.getState())
                 }
-            }, 300)
+            }, 250)
             return { success: true }
         }
 
@@ -212,6 +220,22 @@ class UpdaterManager extends EventEmitter {
             await autoUpdater.downloadUpdate()
             return { success: true }
         } catch (err) {
+            // Eğer "Please check update first" hatası alınırsa, önce kontrol yapmayı dene
+            if (err.message && err.message.includes('Please check update first')) {
+                try {
+                    logger.info('UPDATER', 'İndirme öncesi zorunlu güncelleme kontrolü yapılıyor...')
+                    await autoUpdater.checkForUpdates()
+                    await autoUpdater.downloadUpdate()
+                    return { success: true }
+                } catch (retryErr) {
+                    this.status = 'error'
+                    const errorId = logger.updater('ERROR', 'Güncelleme indirme hatası (yeniden deneme)', retryErr)
+                    this.lastError = { errorId, message: retryErr.message }
+                    this._broadcast('updater:status', this.getState())
+                    return { success: false, error: this.lastError }
+                }
+            }
+
             this.status = 'error'
             const errorId = logger.updater('ERROR', 'Güncelleme indirme hatası', err)
             this.lastError = { errorId, message: err.message }
@@ -221,9 +245,19 @@ class UpdaterManager extends EventEmitter {
     }
 
     quitAndInstall() {
-        if (autoUpdater && this.status === 'downloaded') {
+        let isPackaged = false
+        try {
+            const electron = require('electron')
+            isPackaged = Boolean(electron.app && electron.app.isPackaged)
+        } catch (e) { }
+
+        if (autoUpdater && isPackaged && this.status === 'downloaded') {
             logger.info('UPDATER', 'Uygulama yeniden başlatılıyor ve güncelleme kuruluyor...')
             autoUpdater.quitAndInstall(false, true)
+        } else if (this.status === 'downloaded') {
+            logger.info('UPDATER', 'Geliştirme modunda güncelleme kurulumu tamamlandı sayıldı.')
+            this.status = 'idle'
+            this._broadcast('updater:status', this.getState())
         } else {
             logger.warn('UPDATER', 'Kuruluma hazır güncelleme bulunmuyor.')
         }

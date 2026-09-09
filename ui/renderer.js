@@ -1845,6 +1845,8 @@ function initProfessionalExtension() {
         if (state.status === 'available' && elTopbarUpdateBadge) {
             elTopbarUpdateBadge.classList.remove('hidden')
             if (elTopbarUpdateText && state.updateInfo) elTopbarUpdateText.textContent = `v${state.updateInfo.version} Mevcut`
+        } else if (state.status === 'not-available' && elTopbarUpdateBadge) {
+            elTopbarUpdateBadge.classList.add('hidden')
         }
 
         // Launcher / Ana Karşılama Ekranı Güncelleme Bildirimi
@@ -1865,9 +1867,29 @@ function initProfessionalExtension() {
                 if (elLauncherNewVersionBadge) elLauncherNewVersionBadge.textContent = `v${info.version}`
                 if (elLauncherAlertTitle) elLauncherAlertTitle.textContent = info.title || 'Yeni sürüm yayınlandı!'
             }
+        } else if (state.status === 'downloading') {
+            if (elLauncherUpdateIcon) elLauncherUpdateIcon.textContent = '⏳'
+            if (elLauncherUpdateText) elLauncherUpdateText.textContent = 'Güncelleme indiriliyor...'
+            if (elBtnLauncherUpdateNow) {
+                elBtnLauncherUpdateNow.disabled = true
+                elBtnLauncherUpdateNow.innerHTML = '<span>İndiriliyor...</span>'
+            }
+        } else if (state.status === 'downloaded') {
+            if (elLauncherUpdateIcon) elLauncherUpdateIcon.textContent = '🎉'
+            if (elLauncherUpdateText) elLauncherUpdateText.textContent = 'Güncelleme hazır!'
+            if (elBtnLauncherUpdateNow) {
+                elBtnLauncherUpdateNow.disabled = false
+                elBtnLauncherUpdateNow.className = 'btn btn-success btn-sm'
+                elBtnLauncherUpdateNow.innerHTML = '<span>Yeniden Başlat & Kur</span>'
+                elBtnLauncherUpdateNow.onclick = () => api.updater.install()
+            }
         } else if (state.status === 'error') {
             if (elLauncherUpdateIcon) elLauncherUpdateIcon.textContent = '⚠️'
             if (elLauncherUpdateText) elLauncherUpdateText.textContent = 'Güncelleme sunucusuna bağlanılamadı (Çevrimdışı)'
+            if (elBtnLauncherUpdateNow) {
+                elBtnLauncherUpdateNow.disabled = false
+                elBtnLauncherUpdateNow.innerHTML = '<span>Tekrar Dene</span>'
+            }
         }
     })
 
@@ -1877,6 +1899,9 @@ function initProfessionalExtension() {
         if (elSplashProgressSpeed) {
             const kb = Math.round((progress.bytesPerSecond || 0) / 1024)
             elSplashProgressSpeed.textContent = `${kb} KB/s`
+        }
+        if (elBtnLauncherUpdateNow && elBtnLauncherUpdateNow.disabled) {
+            elBtnLauncherUpdateNow.innerHTML = `<span>İndiriliyor %${progress.percent}</span>`
         }
     })
 
