@@ -1681,7 +1681,7 @@ function initProfessionalExtension() {
             }
 
             if (info.title) elSplashUpdateTitle.textContent = info.title
-            renderChangelogItems(elSplashChangelogList, info.changes || [])
+            renderChangelogItems(elSplashChangelogList, info.changes || [], info.releaseNotes)
 
             elBtnSplashUpdateNow.style.display = 'inline-flex'
             if (elTopbarUpdateBadge) {
@@ -1710,28 +1710,54 @@ function initProfessionalExtension() {
         }
     }
 
-    function renderChangelogItems(container, changes) {
+    function renderChangelogItems(container, changes, releaseNotes) {
         if (!container) return
         container.innerHTML = ''
-        if (!changes || changes.length === 0) {
-            container.innerHTML = '<div style="color: var(--text-dim);">Ayrıntılı sürüm notu bulunmuyor.</div>'
+
+        if (Array.isArray(changes) && changes.length > 0) {
+            changes.forEach(c => {
+                const row = document.createElement('div')
+                row.className = 'release-change-row'
+                let tagClass = 'badge-cyan'
+                let tagText = 'İyileştirme'
+
+                if (c.type === 'feature') { tagClass = 'badge-success'; tagText = 'Özellik' }
+                else if (c.type === 'fix') { tagClass = 'badge-danger'; tagText = 'Düzeltme' }
+                else if (c.type === 'security') { tagClass = 'badge-amber'; tagText = 'Güvenlik' }
+                else if (c.type === 'breaking') { tagClass = 'badge-danger'; tagText = 'Kritik' }
+
+                row.innerHTML = `<span class="badge ${tagClass}" style="flex-shrink:0;">${tagText}</span> <span>${c.description}</span>`
+                container.appendChild(row)
+            })
             return
         }
 
-        changes.forEach(c => {
-            const row = document.createElement('div')
-            row.className = 'release-change-row'
-            let tagClass = 'badge-cyan'
-            let tagText = 'İyileştirme'
+        if (releaseNotes) {
+            const raw = typeof releaseNotes === 'string'
+                ? releaseNotes
+                : (Array.isArray(releaseNotes) ? releaseNotes.map(n => n.note || n).join('\n') : '')
+            const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0)
 
-            if (c.type === 'feature') { tagClass = 'badge-success'; tagText = 'Özellik' }
-            else if (c.type === 'fix') { tagClass = 'badge-danger'; tagText = 'Düzeltme' }
-            else if (c.type === 'security') { tagClass = 'badge-amber'; tagText = 'Güvenlik' }
-            else if (c.type === 'breaking') { tagClass = 'badge-danger'; tagText = 'Kritik' }
+            if (lines.length > 0) {
+                lines.forEach(line => {
+                    const clean = line.replace(/^[*\-#0-9.)\s]+/, '').trim()
+                    if (!clean) return
+                    const row = document.createElement('div')
+                    row.className = 'release-change-row'
+                    let tagClass = 'badge-success'
+                    let tagText = 'Yenilik'
+                    if (/fix|düzeltme|hata|bug/i.test(line)) { tagClass = 'badge-danger'; tagText = 'Düzeltme' }
+                    else if (/güvenlik|security/i.test(line)) { tagClass = 'badge-amber'; tagText = 'Güvenlik' }
+                    else if (/performans|hız/i.test(line)) { tagClass = 'badge-cyan'; tagText = 'Performans' }
 
-            row.innerHTML = `<span class="badge ${tagClass}" style="flex-shrink:0;">${tagText}</span> <span>${c.description}</span>`
-            container.appendChild(row)
-        })
+                    row.innerHTML = `<span class="badge ${tagClass}" style="flex-shrink:0;">${tagText}</span> <span>${clean}</span>`
+                    container.appendChild(row)
+                })
+                return
+            }
+        }
+
+        container.innerHTML = '<div style="color: var(--text-dim);">Ayrıntılı sürüm notu bulunmuyor.</div>'
     }
 
     // Updater Dinleyicileri
