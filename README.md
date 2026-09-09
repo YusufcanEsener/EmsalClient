@@ -19,20 +19,11 @@
 
 ## 📸 Ekran Görüntüleri
 
-### 🖥️ 1. Modern Kontrol Paneli (Dashboard)
-Linear ve Raycast tasarım dillerinden ilham alan ultra hızlı karanlık tema, anlık sunucu durumu ve kovan takip paneli:
-
-<div align="center">
-  <img src="docs/images/dashboard.png" alt="EmsalClient Dashboard" width="90%" style="border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5);"/>
-</div>
-
-<br/>
-
-### 🍯 2. Canlı Kovan Durumu & Otomatik Bal Hasadı
+### 🖥️ Modern Kontrol Paneli & Otomatik Bal Hasadı
 Arı kovanlarındaki bal doluluğunu gerçek zamanlı izler, doluluk oranı **%80'i aştığında** otomatik şişe alıp hasat eder ve sandığa teslim eder:
 
 <div align="center">
-  <img src="docs/images/harvest.png" alt="Bal Hasadı ve Envanter İzleme" width="90%" style="border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5);"/>
+  <img src="docs/images/harvest.png" alt="EmsalClient Kontrol Paneli ve Bal Hasadı" width="90%" style="border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5);"/>
 </div>
 
 ---
