@@ -39,7 +39,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload stable.yml for Legacy Client Compatibility
+      - name: Upload stable.yml and Publish Release
         if: success()
         shell: pwsh
         run: |
@@ -47,6 +47,7 @@ jobs:
             Copy-Item dist/latest.yml dist/stable.yml
             gh release upload ${{ github.ref_name }} dist/stable.yml --clobber
           }
+          gh release edit ${{ github.ref_name }} --draft=false --latest
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
