@@ -19,6 +19,7 @@ const elBtnKovanTara = document.getElementById('btnKovanTara')
 const elBtnToggleOtoBal = document.getElementById('btnToggleOtoBal')
 const elBtnKovanTopla = document.getElementById('btnKovanTopla')
 const elBtnTopla = document.getElementById('btnTopla')
+const elBtnEnvanterBosalt = document.getElementById('btnEnvanterBosalt')
 const elBtnSandik = document.getElementById('btnSandik')
 const elBtnEmptyTara = document.getElementById('btnEmptyTara')
 const elBtnEmptyKovanTara = document.getElementById('btnEmptyKovanTara')
@@ -488,6 +489,31 @@ elBtnSandik.addEventListener('click', async () => {
     }
 })
 
+// Envanteri Boşalt (Sandığa Aktar)
+if (elBtnEnvanterBosalt) {
+    elBtnEnvanterBosalt.addEventListener('click', async () => {
+        elBtnEnvanterBosalt.disabled = true
+        const originalHTML = elBtnEnvanterBosalt.innerHTML
+        elBtnEnvanterBosalt.innerHTML = '<span>Boşaltılıyor...</span>'
+        showToast('Envanter sandığa aktarılıyor...', 'info', 3000)
+        try {
+            const sonuc = await (window.electronAPI.envanterBosalt ? window.electronAPI.envanterBosalt() : window.api.bot.envanterBosalt())
+            if (sonuc && sonuc.basarili) {
+                showToast(sonuc.mesaj || 'Envanter başarıyla sandığa aktarıldı!', 'success', 3500)
+            } else {
+                showToast(sonuc?.mesaj || 'Sandığa aktarım yapılamadı! (Yakında sandık bulunamadı)', 'warning', 4000)
+            }
+        } catch (err) {
+            showToast(`Hata: ${err.message}`, 'error', 4000)
+        } finally {
+            setTimeout(() => {
+                elBtnEnvanterBosalt.disabled = false
+                elBtnEnvanterBosalt.innerHTML = originalHTML
+            }, 1000)
+        }
+    })
+}
+
 // Tekil Minyon Toplama
 async function tekilMinyonTopla(minyonIsmi) {
     showToast(`${minyonIsmi} toplanıyor...`, 'info', 2000)
@@ -857,9 +883,7 @@ function renderMinyonlar(minyonlarObj) {
         const yakitStr = m.yakit || 'Yok'
         const yukseltmeStr = m.yukseltme || 'Yok'
 
-        const collectBtnHTML = isReady
-            ? `<button class="btn btn-collect" data-minyon="${m.isim || ''}" title="Bu minyonu topla">${ICONS.collect}<span>Topla</span></button>`
-            : ''
+        const collectBtnHTML = ''
 
         card.innerHTML = `
             <div class="card-header-row">
@@ -898,9 +922,9 @@ function renderMinyonlar(minyonlarObj) {
             <div class="card-footer-row">
                 <div class="card-status-strip ${isReady ? 'status-alert' : 'status-waiting'}">
                     <span class="status-indicator-dot"></span>
-                    <span>${isReady ? `Hazır (%${hedefLimit} aşıldı)` : 'Dolması bekleniyor'}</span>
+                    <span>${isReady ? `Doluluk: %${yuzde} (Hazır)` : `Doluluk: %${yuzde}`}</span>
                 </div>
-                ${collectBtnHTML}
+                <span class="badge" style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; font-size: 10px; font-weight: 600;">Bilgi Modu</span>
             </div>
         `
 
@@ -1381,6 +1405,7 @@ function syncDurum(durum) {
         if (elBtnKovanTara) elBtnKovanTara.disabled = true
         if (elBtnKovanTopla) elBtnKovanTopla.disabled = true
         if (elBtnTopla) elBtnTopla.disabled = true
+        if (elBtnEnvanterBosalt) elBtnEnvanterBosalt.disabled = true
         if (elBtnSandik) elBtnSandik.disabled = true
     } else if (durum.adada) {
         elBotDurumText.textContent = durum.islemde ? 'İşlem Yapıyor' : 'Adada (Hazır)'
@@ -1393,7 +1418,8 @@ function syncDurum(durum) {
         if (elBtnTara) elBtnTara.disabled = false
         if (elBtnKovanTara) elBtnKovanTara.disabled = false
         if (elBtnKovanTopla) elBtnKovanTopla.disabled = false
-        if (elBtnTopla) elBtnTopla.disabled = false
+        if (elBtnTopla) elBtnTopla.disabled = true
+        if (elBtnEnvanterBosalt) elBtnEnvanterBosalt.disabled = false
         if (elBtnSandik) elBtnSandik.disabled = false
 
         // Bağlantı yeniden kuruldu toast
@@ -1411,6 +1437,7 @@ function syncDurum(durum) {
         if (elBtnKovanTara) elBtnKovanTara.disabled = true
         if (elBtnKovanTopla) elBtnKovanTopla.disabled = true
         if (elBtnTopla) elBtnTopla.disabled = true
+        if (elBtnEnvanterBosalt) elBtnEnvanterBosalt.disabled = true
         if (elBtnSandik) elBtnSandik.disabled = true
 
         // Bağlantı koptu overlay

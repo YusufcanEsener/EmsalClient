@@ -168,13 +168,23 @@
                     <span>Balları Topla</span>
                 </button>
 
-                <button class="btn btn-secondary" id="btnTopla" title="Minyonları Topla (Ctrl+T)" disabled>
+                <button class="btn btn-secondary" id="btnTopla" title="Minyonları Topla (Ctrl+T)" disabled style="display: none;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
                         <path d="m3.3 7 8.7 5 8.7-5"></path>
                         <path d="M12 22V12"></path>
                     </svg>
                     <span>Tümünü Topla</span>
+                </button>
+
+                <!-- YENİ: Envanteri Boşalt Butonu -->
+                <button class="btn btn-primary" id="btnEnvanterBosalt" title="Çantadaki tüm eşyaları hedef sandığa aktarır" disabled>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+                        <polyline points="12 12 12 18 15 15"></polyline>
+                        <line x1="12" y1="18" x2="9" y2="15"></line>
+                    </svg>
+                    <span>Envanteri Boşalt</span>
                 </button>
 
                 <button class="btn btn-secondary" id="btnSandik" disabled>
@@ -206,13 +216,12 @@
 
                 <div class="toolbar-separator"></div>
 
-                <!-- Test / Bilgi Modu Switch -->
-                <div class="control-item" title="Açıkken minyonlara yürümez ve eşya almaz, sadece bilgileri okur.">
-                    <span class="control-label">Test Modu</span>
-                    <label class="switch-sm">
-                        <input type="checkbox" id="chkTestModu" checked>
-                        <span class="slider-sm"></span>
-                    </label>
+                <!-- Minyon Bilgi Rozeti (Test modu butonları kaldırıldı, otomatik bilgi modu aktif) -->
+                <input type="checkbox" id="chkTestModu" style="display: none;" checked>
+                <div class="control-item" title="Minyonlar otomatik taranır ve canlı bilgileri okunur (Toplama devre dışı).">
+                    <span class="badge badge-cyan" style="font-size: 11px; padding: 3px 8px; display: flex; align-items: center; gap: 4px;">
+                        <span>ℹ️ Minyonlar: Bilgi Modu</span>
+                    </span>
                 </div>
 
                 <div class="toolbar-separator"></div>

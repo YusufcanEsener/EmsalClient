@@ -168,6 +168,12 @@ class BotManager extends EventEmitter {
         return botKontrol.envanterAl()
     }
 
+    envanterBosalt() {
+        return typeof botKontrol.envanterBosalt === 'function'
+            ? botKontrol.envanterBosalt()
+            : { basarili: false, mesaj: 'Desteklenmiyor' }
+    }
+
     tumunuTopla() {
         return botKontrol.topla()
     }

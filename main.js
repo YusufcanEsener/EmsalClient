@@ -1355,43 +1355,8 @@ async function otomatikMinyonGorevi() {
             }
         }
 
-        // 3. MİNYON TEST MODU KONTROLÜ: Eğer sadece bilgi modu açıksa minyon eşyası toplamadan dur!
-        if (AYARLAR.SADECE_BILGI_MODU) {
-            console.log('ℹ️ [TEST MODU] Minyonlar için sadece bilgi modu devrede: Minyona gidilmedi ve minyon eşyası alınmadı.\n')
-            islemde = false
-            return
-        }
-
-        // 4. Minyon Toplama (%80 ve üzeri dolanlar)
-        const toplanacaklar = bulunanMinyonlar.filter(m => m.yuzde >= AYARLAR.HEDEF_DOLULUK_YUZDESI)
-
-        if (toplanacaklar.length === 0) {
-            console.log(`[BİLGİ] %${AYARLAR.HEDEF_DOLULUK_YUZDESI} ve üzeri dolulukta minyon bulunamadı. Bekleniyor...`)
-            islemde = false
-            return
-        }
-
-        console.log(`[BİLGİ] Toplam ${toplanacaklar.length} adet toplanacak minyon var!`)
-
-        let enAzBirTaneToplandi = false
-        for (let i = 0; i < toplanacaklar.length; i++) {
-            const minyon = toplanacaklar[i]
-            const basarili = await minyondanEsyalariTopla(minyon)
-            if (basarili) enAzBirTaneToplandi = true
-        }
-
-        if (enAzBirTaneToplandi) {
-            await sandigaEsyalariKoy()
-        }
-
-        if (afkKonumu) {
-            console.log(`[YÜRÜME] Başlangıç AFK konumuna geri dönülüyor...`)
-            try {
-                await bot.pathfinder.goto(new goals.GoalNear(afkKonumu.x, afkKonumu.y, afkKonumu.z, 1))
-                console.log('[DURUM] Bot tekrar AFK konumunda beklemeye geçti.')
-            } catch (e) { }
-        }
-
+        // 3. MİNYON BİLGİ MODU: Minyonlar sadece otomatik taranır (Eşya toplama devre dışı)
+        console.log("[MİNYONLAR] Minyon bilgileri otomatik olarak güncellendi (Bilgi alma modu aktif).\n");
     } catch (hata) {
         console.log(`[HATA] Görev sırasında beklenmeyen bir hata oluştu: ${hata.message}`)
     } finally {
@@ -1922,6 +1887,26 @@ const botKontrol = {
     },
     envanterAl: () => {
         return envanterBilgisiAl()
+    },
+    envanterBosalt: async () => {
+        if (!bot || !adada) {
+            console.log('[UYARI] Bot adada değil veya henüz başlatılmadı!')
+            return { basarili: false, mesaj: 'Bot adada değil veya henüz başlatılmadı!' }
+        }
+        console.log('\n[İŞLEM] Envanteri boşalt (sandığa aktarım) başlatılıyor...')
+        const sonuc = await sandigaEsyalariKoy()
+        if (afkKonumu) {
+            try {
+                await bot.pathfinder.goto(new goals.GoalNear(afkKonumu.x, afkKonumu.y, afkKonumu.z, 1))
+            } catch (e) { }
+        }
+        botEvents.emit('envanter', envanterBilgisiAl())
+        if (sonuc) {
+            console.log('[BAŞARILI] Envanterdeki eşyalar başarıyla sandığa aktarıldı.')
+            return { basarili: true, mesaj: 'Envanter başarıyla sandığa boşaltıldı!' }
+        } else {
+            return { basarili: false, mesaj: 'Sandığa aktarım yapılamadı! (Yakında sandık bulunamadı veya ulaşılamadı)' }
+        }
     },
     topla: async () => {
         if (!bot || !adada) {
