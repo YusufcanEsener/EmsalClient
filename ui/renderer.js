@@ -1614,6 +1614,18 @@ function initProfessionalExtension() {
     const elInputProfilImportFile = document.getElementById('inputProfilImportFile')
     const elProfilesListGrid = document.getElementById('profilesListGrid')
 
+    // Launcher / Ana Karşılama Ekranı Elemanları
+    const elLauncherAppVersion = document.getElementById('launcherAppVersion')
+    const elLauncherUpdateIcon = document.getElementById('launcherUpdateIcon')
+    const elLauncherUpdateText = document.getElementById('launcherUpdateText')
+    const elLauncherUpdateAlert = document.getElementById('launcherUpdateAlert')
+    const elLauncherNewVersionBadge = document.getElementById('launcherNewVersionBadge')
+    const elLauncherAlertTitle = document.getElementById('launcherAlertTitle')
+    const elBtnLauncherUpdateNow = document.getElementById('btnLauncherUpdateNow')
+    const elBtnLauncherContinue = document.getElementById('btnLauncherContinue')
+    const elBtnLauncherSettings = document.getElementById('btnLauncherSettings')
+    const elBtnLauncherReleases = document.getElementById('btnLauncherReleases')
+
     const elProfileEditModal = document.getElementById('profileEditModal')
     const elBtnProfileEditKapat = document.getElementById('btnProfileEditKapat')
     const elProfileEditModalTitle = document.getElementById('profileEditModalTitle')
@@ -1680,6 +1692,7 @@ function initProfessionalExtension() {
         try {
             currentAppVersion = await api.app.getVersion()
             if (elSplashCurrentVersion) elSplashCurrentVersion.textContent = `v${currentAppVersion}`
+            if (elLauncherAppVersion) elLauncherAppVersion.textContent = `v${currentAppVersion}`
         } catch (e) { }
 
         // Aktif profili yükle ve göster
@@ -1833,6 +1846,29 @@ function initProfessionalExtension() {
             elTopbarUpdateBadge.classList.remove('hidden')
             if (elTopbarUpdateText && state.updateInfo) elTopbarUpdateText.textContent = `v${state.updateInfo.version} Mevcut`
         }
+
+        // Launcher / Ana Karşılama Ekranı Güncelleme Bildirimi
+        if (state.status === 'checking') {
+            if (elLauncherUpdateIcon) elLauncherUpdateIcon.textContent = '🔍'
+            if (elLauncherUpdateText) elLauncherUpdateText.textContent = 'Güncellemeler denetleniyor...'
+            if (elLauncherUpdateAlert) elLauncherUpdateAlert.classList.add('hidden')
+        } else if (state.status === 'not-available') {
+            if (elLauncherUpdateIcon) elLauncherUpdateIcon.textContent = '✓'
+            if (elLauncherUpdateText) elLauncherUpdateText.innerHTML = '<span style="color: #22c55e; font-weight: 600;">Sürümünüz Güncel</span> <span style="color: var(--text-dim);">(En son sürüm)</span>'
+            if (elLauncherUpdateAlert) elLauncherUpdateAlert.classList.add('hidden')
+        } else if (state.status === 'available') {
+            const info = state.updateInfo || {}
+            if (elLauncherUpdateIcon) elLauncherUpdateIcon.textContent = '🚀'
+            if (elLauncherUpdateText) elLauncherUpdateText.innerHTML = `<strong style="color: #38bdf8;">Yeni Sürüm: v${info.version}</strong>`
+            if (elLauncherUpdateAlert) {
+                elLauncherUpdateAlert.classList.remove('hidden')
+                if (elLauncherNewVersionBadge) elLauncherNewVersionBadge.textContent = `v${info.version}`
+                if (elLauncherAlertTitle) elLauncherAlertTitle.textContent = info.title || 'Yeni sürüm yayınlandı!'
+            }
+        } else if (state.status === 'error') {
+            if (elLauncherUpdateIcon) elLauncherUpdateIcon.textContent = '⚠️'
+            if (elLauncherUpdateText) elLauncherUpdateText.textContent = 'Güncelleme sunucusuna bağlanılamadı (Çevrimdışı)'
+        }
     })
 
     api.updater.onProgress((progress) => {
@@ -1851,8 +1887,15 @@ function initProfessionalExtension() {
     if (elBtnSplashRetry) elBtnSplashRetry.onclick = () => api.updater.check()
     if (elTopbarUpdateBadge) elTopbarUpdateBadge.onclick = () => openSplash('available')
 
-    // Başlangıç Açılış Deneyimi (Splash Ekranı ile Başlatma)
-    openSplash('checking')
+    // Launcher Buton Olayları
+    if (elBtnLauncherContinue) elBtnLauncherContinue.onclick = () => closeModal(elProfilesModal)
+    if (elBtnLauncherUpdateNow) elBtnLauncherUpdateNow.onclick = () => api.updater.download()
+    if (elBtnLauncherSettings) elBtnLauncherSettings.onclick = () => { loadSettings(); openModal(elSettingsModal); }
+    if (elBtnLauncherReleases) elBtnLauncherReleases.onclick = () => { loadReleasesTimeline(); openModal(elReleasesModal); }
+
+    // Başlangıç Açılış Deneyimi (Ana Karşılama ve Bot Hesap Seçim Ekranı - Launcher)
+    loadProfilesList()
+    openModal(elProfilesModal)
     setTimeout(() => {
         api.updater.check().catch(() => {})
     }, 250)
@@ -1947,16 +1990,28 @@ function initProfessionalExtension() {
                     </div>
 
                     <div class="profile-card-actions">
-                        ${!isActive ? `<button class="btn btn-success btn-sm btn-prof-launch" data-id="${p.id}">Başlat / Seç</button>` : `<button class="btn btn-secondary btn-sm" disabled>Aktif</button>`}
+                        ${!isActive ? `<button class="btn btn-success btn-sm btn-prof-launch" data-id="${p.id}">Başlat / Seç</button>` : `<button class="btn btn-primary btn-sm btn-prof-continue" data-id="${p.id}">Panele Geç (Aktif)</button>`}
                         <button class="btn btn-secondary btn-sm btn-prof-edit" data-id="${p.id}">Düzenle</button>
                         <button class="btn btn-secondary btn-sm btn-prof-duplicate" data-id="${p.id}">Kopyala</button>
                         ${!isActive ? `<button class="btn btn-danger btn-sm btn-prof-delete" data-id="${p.id}">Sil</button>` : ''}
                     </div>
                 `
+
+                card.onclick = (e) => {
+                    if (e.target.closest('button') || e.target.closest('input')) return
+                    if (isActive) {
+                        closeModal(elProfilesModal)
+                    }
+                }
+
                 elProfilesListGrid.appendChild(card)
             })
 
             // Buton Olayları Bağlama
+            elProfilesListGrid.querySelectorAll('.btn-prof-continue').forEach(b => {
+                b.onclick = () => closeModal(elProfilesModal)
+            })
+
             elProfilesListGrid.querySelectorAll('.btn-prof-launch').forEach(b => {
                 b.onclick = async () => {
                     const id = b.getAttribute('data-id')
