@@ -110,42 +110,33 @@ botManager.on('log', (mesaj) => {
     }
 })
 
+function sendToActiveView(channel, payload) {
+    if (!mainWindow || mainWindow.isDestroyed()) return
+    const isObj = payload && typeof payload === 'object'
+    const profileId = isObj && 'profileId' in payload ? payload.profileId : null
+    const data = isObj && 'data' in payload ? payload.data : payload
+
+    if (profileId && botManager.selectedProfileId && profileId !== botManager.selectedProfileId) {
+        return // Başka bir botun verisi, aktif panele basma
+    }
+    mainWindow.webContents.send(channel, data)
+}
+
 botManager.on('durum', (durumBilgisi) => {
+    if (durumBilgisi.profileId && botManager.selectedProfileId && durumBilgisi.profileId !== botManager.selectedProfileId) {
+        return
+    }
     trayManager.updateBotStatus(durumBilgisi.durum)
     if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('bot:durum-guncelle', durumBilgisi)
     }
 })
 
-botManager.on('minyonlar', (minyonlar) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('bot:minyonlar-guncelle', minyonlar)
-    }
-})
-
-botManager.on('kovanlar', (kovanlar) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('bot:kovanlar-guncelle', kovanlar)
-    }
-})
-
-botManager.on('envanter', (envanter) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('bot:envanter-guncelle', envanter)
-    }
-})
-
-botManager.on('sandikGuncellendi', (konum) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('bot:sandik-guncelle', konum)
-    }
-})
-
-botManager.on('oto-bal-guncelle', (durum) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('bot:oto-bal-guncelle', durum)
-    }
-})
+botManager.on('minyonlar', (p) => sendToActiveView('bot:minyonlar-guncelle', p))
+botManager.on('kovanlar', (p) => sendToActiveView('bot:kovanlar-guncelle', p))
+botManager.on('envanter', (p) => sendToActiveView('bot:envanter-guncelle', p))
+botManager.on('sandikGuncellendi', (p) => sendToActiveView('bot:sandik-guncelle', p))
+botManager.on('oto-bal-guncelle', (p) => sendToActiveView('bot:oto-bal-guncelle', p))
 
 botManager.on('ayarGuncellendi', () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -160,21 +151,15 @@ botManager.on('profileChanged', (profile) => {
     }
 })
 
-botManager.on('sunucuGuncellendi', (data) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('bot:sunucu-guncelle', data)
-    }
-})
+botManager.on('sunucuGuncellendi', (p) => sendToActiveView('bot:sunucu-guncelle', p))
+botManager.on('hasatGuncellendi', (p) => sendToActiveView('bot:hasat-guncelle', p))
+botManager.on('tasmaKorumasiTetiklendi', (p) => sendToActiveView('bot:tasma-korumasi', p))
 
-botManager.on('hasatGuncellendi', (data) => {
+botManager.on('botListChanged', (list) => {
+    const running = botManager.getRunningCount()
+    trayManager.updateBotStatus(running > 0 ? `${running} Bot Çalışıyor` : 'Durduruldu')
     if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('bot:hasat-guncelle', data)
-    }
-})
-
-botManager.on('tasmaKorumasiTetiklendi', (data) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('bot:tasma-korumasi', data)
+        mainWindow.webContents.send('bot:liste-guncelle', list)
     }
 })
 
@@ -237,38 +222,60 @@ ipcMain.handle('profiles:list', () => profileStore.list())
 ipcMain.handle('profiles:get', (e, id) => profileStore.get(id))
 ipcMain.handle('profiles:create', (e, data, password) => profileStore.create(data, password))
 ipcMain.handle('profiles:update', (e, id, data, password) => profileStore.update(id, data, password))
-ipcMain.handle('profiles:delete', (e, id) => profileStore.delete(id))
+ipcMain.handle('profiles:delete', async (e, id) => {
+    if (botManager) {
+        try {
+            await botManager.stop(id)
+        } catch (err) { }
+        if (botManager.instances) {
+            botManager.instances.delete(id)
+        }
+        if (botManager.selectedProfileId === id) {
+            const remaining = profileStore.list().filter(p => p.id !== id)
+            if (remaining.length > 0) {
+                botManager.selectBot(remaining[0].id)
+            } else {
+                botManager.selectedProfileId = null
+            }
+        }
+    }
+    return profileStore.delete(id)
+})
 ipcMain.handle('profiles:duplicate', (e, id) => profileStore.duplicate(id))
 ipcMain.handle('profiles:launch', (e, id) => {
-    botManager.setActiveProfile(id)
-    return botManager.start()
+    botManager.selectBot(id)
+    return botManager.start(id)
 })
 ipcMain.handle('profiles:export', (e, ids) => profileStore.exportProfiles(ids))
 ipcMain.handle('profiles:import', (e, jsonString) => profileStore.importProfiles(jsonString))
 
 // ==========================================
-// IPC HANDLERS - BOT KONTROL (GERİYE DÖNÜK UYUMLU)
+// IPC HANDLERS - BOT KONTROL (ÇOKLU BOT DESTEKLİ)
 // ==========================================
-ipcMain.handle('bot:durum-al', () => botManager.getStatus())
-ipcMain.handle('bot:baslat', () => botManager.start())
-ipcMain.handle('bot:durdur', () => botManager.stop())
-ipcMain.handle('bot:tara', () => botManager.tara())
-ipcMain.handle('bot:kovan-tara', () => botManager.kovanTara())
-ipcMain.handle('bot:kovan-bal-test', () => botManager.kovanBalTest())
-ipcMain.handle('bot:kovan-bal-topla', (e, hedefYuzde) => botManager.kovanBalTopla(hedefYuzde))
-ipcMain.handle('bot:tekil-kovan-hasat', (e, kovanId) => botManager.tekilKovanHasat(kovanId))
-ipcMain.handle('bot:envanter-al', () => botManager.envanterAl())
-ipcMain.handle('bot:envanter-bosalt', () => botManager.envanterBosalt())
-ipcMain.handle('bot:topla', () => botManager.tumunuTopla())
-ipcMain.handle('bot:tekil-topla', (e, minyonIsmi) => botManager.tekilTopla(minyonIsmi))
-ipcMain.handle('bot:sandik-ayarla', () => botManager.sandikAyarla())
-ipcMain.handle('bot:test-modu-degistir', (e, durum) => botManager.testModuDegistir(durum))
-ipcMain.handle('bot:hedef-yuzde-degistir', (e, yuzde) => botManager.hedefYuzdeDegistir(yuzde))
-ipcMain.handle('bot:oto-bal-durum-al', () => botManager.otoBalDurumAl())
-ipcMain.handle('bot:oto-bal-degistir', (e, durum) => botManager.otoBalDegistir(durum))
-ipcMain.handle('bot:sunucu-kontrol-et', () => botManager.sunucuKontrolEt())
-ipcMain.handle('bot:hasat-al', () => botManager.hasatAnalitigiAl())
-ipcMain.handle('bot:hasat-sifirla', (e, sadeceOturum) => botManager.hasatAnalitigiSifirla(sadeceOturum))
+ipcMain.handle('bot:durum-al', (e, profileId) => botManager.getStatus(profileId))
+ipcMain.handle('bot:baslat', (e, profileId) => botManager.start(profileId))
+ipcMain.handle('bot:durdur', (e, profileId) => botManager.stop(profileId))
+ipcMain.handle('bot:baslat-hepsi', () => botManager.startAll())
+ipcMain.handle('bot:durdur-hepsi', () => botManager.stopAll())
+ipcMain.handle('bot:sec', (e, profileId) => botManager.selectBot(profileId))
+ipcMain.handle('bot:liste-al', () => botManager.listAll())
+ipcMain.handle('bot:tara', (e, profileId) => botManager.tara(profileId))
+ipcMain.handle('bot:kovan-tara', (e, profileId) => botManager.kovanTara(profileId))
+ipcMain.handle('bot:kovan-bal-test', (e, profileId) => botManager.kovanBalTest(profileId))
+ipcMain.handle('bot:kovan-bal-topla', (e, hedefYuzde, profileId) => botManager.kovanBalTopla(hedefYuzde, profileId))
+ipcMain.handle('bot:tekil-kovan-hasat', (e, kovanId, profileId) => botManager.tekilKovanHasat(kovanId, profileId))
+ipcMain.handle('bot:envanter-al', (e, profileId) => botManager.envanterAl(profileId))
+ipcMain.handle('bot:envanter-bosalt', (e, profileId) => botManager.envanterBosalt(profileId))
+ipcMain.handle('bot:topla', (e, profileId) => botManager.tumunuTopla(profileId))
+ipcMain.handle('bot:tekil-topla', (e, minyonIsmi, profileId) => botManager.tekilTopla(minyonIsmi, profileId))
+ipcMain.handle('bot:sandik-ayarla', (e, profileId) => botManager.sandikAyarla(profileId))
+ipcMain.handle('bot:test-modu-degistir', (e, durum, profileId) => botManager.testModuDegistir(durum, profileId))
+ipcMain.handle('bot:hedef-yuzde-degistir', (e, yuzde, profileId) => botManager.hedefYuzdeDegistir(yuzde, profileId))
+ipcMain.handle('bot:oto-bal-durum-al', (e, profileId) => botManager.otoBalDurumAl(profileId))
+ipcMain.handle('bot:oto-bal-degistir', (e, durum, profileId) => botManager.otoBalDegistir(durum, profileId))
+ipcMain.handle('bot:sunucu-kontrol-et', (e, profileId) => botManager.sunucuKontrolEt(profileId))
+ipcMain.handle('bot:hasat-al', (e, profileId) => botManager.hasatAnalitigiAl(profileId))
+ipcMain.handle('bot:hasat-sifirla', (e, sadeceOturum, profileId) => botManager.hasatAnalitigiSifirla(sadeceOturum, profileId))
 
 // ==========================================
 // IPC HANDLERS - AYARLAR (SETTINGS) & LOGLAR

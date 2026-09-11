@@ -127,6 +127,29 @@
             </div>
         </header>
 
+        <!-- MULTI-BOT SWITCHER STRIP -->
+        <section class="bot-switcher-bar" id="botSwitcherBar">
+            <div class="bot-switcher-left">
+                <span class="bot-switcher-label">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <span>Aktif Botlar:</span>
+                </span>
+                <div class="bot-chips-container" id="botChipsContainer">
+                    <!-- Dinamik bot çipleri render edilecek -->
+                </div>
+            </div>
+            <div class="bot-switcher-right">
+                <button class="btn btn-subtle btn-xs" id="btnStartAllBots" title="Kayıtlı tüm botları başlat">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <span>Tümünü Başlat</span>
+                </button>
+                <button class="btn btn-subtle btn-xs text-danger" id="btnStopAllBots" title="Çalışan tüm botları durdur">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+                    <span>Tümünü Durdur</span>
+                </button>
+            </div>
+        </section>
+
         <!-- 2. ACTION TOOLBAR (COMPACT SINGLE ROW) -->
         <section class="action-toolbar">
             <div class="toolbar-actions">
@@ -577,6 +600,13 @@
                     </div>
 
                     <div class="terminal-action-group">
+                        <!-- Bot Filtresi -->
+                        <select class="sort-select terminal-bot-select" id="selectTerminalBotFilter" title="Loglarını görmek istediğiniz bot">
+                            <option value="all">Tüm Botlar</option>
+                        </select>
+
+                        <div class="toolbar-separator"></div>
+
                         <!-- Terminal Filtre Butonları -->
                         <div class="terminal-filters" id="terminalFilters">
                             <button class="filter-btn active" data-filter="all" title="Tümü">Tümü</button>
@@ -756,6 +786,12 @@
                 </div>
 
                 <div class="launcher-header-actions">
+                    <button class="btn btn-success btn-sm" id="btnModalStartAll" title="Kayıtlı tüm botları başlat">
+                        <span>▶️ Tümünü Başlat</span>
+                    </button>
+                    <button class="btn btn-danger btn-sm" id="btnModalStopAll" title="Çalışan tüm botları durdur">
+                        <span>⏹️ Tümünü Durdur</span>
+                    </button>
                     <button class="btn btn-primary btn-sm" id="btnYeniProfilAc">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
                         <span>+ Yeni Bot Hesabı</span>

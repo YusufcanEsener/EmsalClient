@@ -40,9 +40,9 @@ const paths = {
     getReleasesCachePath: () => path.join(getUserDataDir(), 'releases-cache.json'),
     getReleasesJsonPath: () => path.join(__dirname, '..', '..', 'releases.json'),
     getLogsDir: () => ensureDir(path.join(getUserDataDir(), 'logs')),
-    getMinyonlarJsonPath: () => path.join(getUserDataDir(), 'minyonlar.json'),
-    getKovanlarJsonPath: () => path.join(getUserDataDir(), 'kovanlar.json'),
-    getHasatAnalitigiJsonPath: () => path.join(getUserDataDir(), 'hasat_analitigi.json'),
+    getMinyonlarJsonPath: (profileId = null) => profileId ? path.join(getUserDataDir(), `minyonlar_${profileId}.json`) : path.join(getUserDataDir(), 'minyonlar.json'),
+    getKovanlarJsonPath: (profileId = null) => profileId ? path.join(getUserDataDir(), `kovanlar_${profileId}.json`) : path.join(getUserDataDir(), 'kovanlar.json'),
+    getHasatAnalitigiJsonPath: (profileId = null) => profileId ? path.join(getUserDataDir(), `hasat_analitigi_${profileId}.json`) : path.join(getUserDataDir(), 'hasat_analitigi.json'),
     ensureDir
 }
 

@@ -62,8 +62,6 @@ function runMigrationIfNeeded() {
                 checkInterval: kontrolAraligi,
                 autoHoneyHarvest: otoBal,
                 saveJson: true,
-                apiActive: true,
-                apiPort: 3000,
                 chestLocation: sandikKonumu
             }
         }, sifre)

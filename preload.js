@@ -48,26 +48,30 @@ const api = {
         }
     },
     bot: {
-        start: () => ipcRenderer.invoke('bot:baslat'),
-        stop: () => ipcRenderer.invoke('bot:durdur'),
-        status: () => ipcRenderer.invoke('bot:durum-al'),
-        tara: () => ipcRenderer.invoke('bot:tara'),
-        kovanTara: () => ipcRenderer.invoke('bot:kovan-tara'),
-        kovanBalTest: () => ipcRenderer.invoke('bot:kovan-bal-test'),
-        kovanBalTopla: (hedefYuzde) => ipcRenderer.invoke('bot:kovan-bal-topla', hedefYuzde),
-        tekilKovanHasat: (kovanId) => ipcRenderer.invoke('bot:tekil-kovan-hasat', kovanId),
-        envanterAl: () => ipcRenderer.invoke('bot:envanter-al'),
-        envanterBosalt: () => ipcRenderer.invoke('bot:envanter-bosalt'),
-        tumunuTopla: () => ipcRenderer.invoke('bot:topla'),
-        tekilTopla: (isim) => ipcRenderer.invoke('bot:tekil-topla', isim),
-        sandikAyarla: () => ipcRenderer.invoke('bot:sandik-ayarla'),
-        testModuDegistir: (durum) => ipcRenderer.invoke('bot:test-modu-degistir', durum),
-        hedefYuzdeDegistir: (yuzde) => ipcRenderer.invoke('bot:hedef-yuzde-degistir', yuzde),
-        otoBalDurumAl: () => ipcRenderer.invoke('bot:oto-bal-durum-al'),
-        otoBalDegistir: (durum) => ipcRenderer.invoke('bot:oto-bal-degistir', durum),
-        sunucuKontrolEt: () => ipcRenderer.invoke('bot:sunucu-kontrol-et'),
-        hasatAl: () => ipcRenderer.invoke('bot:hasat-al'),
-        hasatSifirla: (sadeceOturum) => ipcRenderer.invoke('bot:hasat-sifirla', sadeceOturum),
+        start: (profileId) => ipcRenderer.invoke('bot:baslat', profileId),
+        stop: (profileId) => ipcRenderer.invoke('bot:durdur', profileId),
+        startAll: () => ipcRenderer.invoke('bot:baslat-hepsi'),
+        stopAll: () => ipcRenderer.invoke('bot:durdur-hepsi'),
+        select: (profileId) => ipcRenderer.invoke('bot:sec', profileId),
+        list: () => ipcRenderer.invoke('bot:liste-al'),
+        status: (profileId) => ipcRenderer.invoke('bot:durum-al', profileId),
+        tara: (profileId) => ipcRenderer.invoke('bot:tara', profileId),
+        kovanTara: (profileId) => ipcRenderer.invoke('bot:kovan-tara', profileId),
+        kovanBalTest: (profileId) => ipcRenderer.invoke('bot:kovan-bal-test', profileId),
+        kovanBalTopla: (hedefYuzde, profileId) => ipcRenderer.invoke('bot:kovan-bal-topla', hedefYuzde, profileId),
+        tekilKovanHasat: (kovanId, profileId) => ipcRenderer.invoke('bot:tekil-kovan-hasat', kovanId, profileId),
+        envanterAl: (profileId) => ipcRenderer.invoke('bot:envanter-al', profileId),
+        envanterBosalt: (profileId) => ipcRenderer.invoke('bot:envanter-bosalt', profileId),
+        tumunuTopla: (profileId) => ipcRenderer.invoke('bot:topla', profileId),
+        tekilTopla: (isim, profileId) => ipcRenderer.invoke('bot:tekil-topla', isim, profileId),
+        sandikAyarla: (profileId) => ipcRenderer.invoke('bot:sandik-ayarla', profileId),
+        testModuDegistir: (durum, profileId) => ipcRenderer.invoke('bot:test-modu-degistir', durum, profileId),
+        hedefYuzdeDegistir: (yuzde, profileId) => ipcRenderer.invoke('bot:hedef-yuzde-degistir', yuzde, profileId),
+        otoBalDurumAl: (profileId) => ipcRenderer.invoke('bot:oto-bal-durum-al', profileId),
+        otoBalDegistir: (durum, profileId) => ipcRenderer.invoke('bot:oto-bal-degistir', durum, profileId),
+        sunucuKontrolEt: (profileId) => ipcRenderer.invoke('bot:sunucu-kontrol-et', profileId),
+        hasatAl: (profileId) => ipcRenderer.invoke('bot:hasat-al', profileId),
+        hasatSifirla: (sadeceOturum, profileId) => ipcRenderer.invoke('bot:hasat-sifirla', sadeceOturum, profileId),
 
         onLog: (callback) => {
             ipcRenderer.removeAllListeners('bot:log')
@@ -108,6 +112,10 @@ const api = {
         onTasmaKorumasi: (callback) => {
             ipcRenderer.removeAllListeners('bot:tasma-korumasi')
             ipcRenderer.on('bot:tasma-korumasi', (e, data) => callback(data))
+        },
+        onBotListUpdate: (callback) => {
+            ipcRenderer.removeAllListeners('bot:liste-guncelle')
+            ipcRenderer.on('bot:liste-guncelle', (e, data) => callback(data))
         }
     },
     settings: {

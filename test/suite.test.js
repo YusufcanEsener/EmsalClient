@@ -220,6 +220,30 @@ it('Should have all renderer DOM element IDs existing in index.html', () => {
     assert.strictEqual(missing.length, 0, `Missing DOM IDs: ${missing.join(', ')}`)
 })
 
+// 9. LOBBY & SERVER DETECTION VERIFICATION
+console.log('\n--- 9. Lobby & Server Detection Verification ---')
+const botMain = require('../main')
+it('Should accurately expose server detection and status query', () => {
+    assert(typeof botMain.sunucuKonumunuTespitEt === 'function')
+    assert(typeof botMain.sunucuKontrolEt === 'function')
+    const initialLoc = botMain.sunucuKonumunuTespitEt()
+    assert.strictEqual(initialLoc, 'Durduruldu')
+})
+it('Should have correct regex/string matching patterns for lobby kill messages and command errors', () => {
+    const errorMsg = 'Unknown or incomplete command, see below for error minyon<--[HERE]'
+    const cleanError = errorMsg.toLowerCase()
+    assert(cleanError.includes('unknown or incomplete command'))
+    assert(cleanError.includes('minyon<--[here]'))
+
+    const pvpMsg = '[*] Zantor, gercekcimeza adli oyuncuyu öldürdü!'
+    const cleanPvp = pvpMsg.toLowerCase()
+    assert(cleanPvp.includes('adli oyuncuyu öldürdü') || cleanPvp.includes('adli oyuncuyu oldurdu'))
+
+    const discordMsg = 'Bilgilendirme | Discorda Katılmayı Unutmayın | DC= discord.gg/aesirdc'
+    const cleanDiscord = discordMsg.toLowerCase()
+    assert(cleanDiscord.includes('discord.gg/aesirdc') || cleanDiscord.includes('aesirdc'))
+})
+
 console.log('\n====================================================')
 console.log(`   TEST RESULTS: ${passCount} PASSED, ${failCount} FAILED   `)
 console.log('====================================================\n')

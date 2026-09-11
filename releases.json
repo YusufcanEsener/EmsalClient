@@ -1,6 +1,38 @@
 {
   "releases": [
     {
+      "id": "rel-1-0-6",
+      "version": "1.0.6",
+      "title": "EmsalClient v1.0.6 — Akıllı Lobi & Skyblock Tespiti, Komut Hatası Kurtarma & Otomatik Yeniden Bağlanma",
+      "releaseType": "patch",
+      "releaseDate": "2026-09-11",
+      "status": "published",
+      "mandatory": false,
+      "channel": "stable",
+      "changes": [
+        {
+          "type": "fix",
+          "description": "Bot lobideyken Skyblock adasında sanılması ve /minyon ile /kovanlar komutlarının bilinmeyen komut (Unknown or incomplete command) hatası vermesi kökten çözüldü"
+        },
+        {
+          "type": "fix",
+          "description": "Scoreboard üzerindeki döngüsel mantık hatası giderildi; AESIR NETWORK, lobi göstergeleri ve ada verisi yokluğu anında algılanarak lobiye düşüldüğü tespit edilir"
+        },
+        {
+          "type": "fix",
+          "description": "Lobi PvP arenası ölüm duyuruları ([*] ... adli oyuncuyu öldürdü!) ve lobi duyuruları ile lobi tespiti güçlendirildi"
+        },
+        {
+          "type": "fix",
+          "description": "Sunucu yeniden başlatıldığında BungeeCord'un gönderdiği respawn paketinde ada modu askıya alınıp otomatik konum doğrulaması ve /gir skyblock-spawn döngüsü devreye sokuldu"
+        },
+        {
+          "type": "improvement",
+          "description": "Lobide veya ada dışında taranamayan kovanlar için ekrana yanıltıcı 'kovanlar kontrol edildi' loglarının basılması engellendi"
+        }
+      ]
+    },
+    {
       "id": "rel-1-0-5",
       "version": "1.0.5",
       "title": "EmsalClient v1.0.5 — Yüksek Çözünürlüklü Masaüstü İkonu & Görsel Netlik İyileştirmesi",

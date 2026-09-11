@@ -2,7 +2,6 @@ const mineflayer = require('mineflayer')
 const { pathfinder, Movements, goals } = require('mineflayer-pathfinder')
 const { Vec3 } = require('vec3')
 const fs = require('fs')
-const http = require('http')
 const EventEmitter = require('events')
 
 let appPaths = null
@@ -36,69 +35,13 @@ try {
     }
 } catch (e) { }
 
-// Bot olaylarını Electron arayüzüne iletmek için EventEmitter
-const botEvents = new EventEmitter()
-
-// Konsol çıktılarını hem terminale hem de Electron GUI'ye aktar
 const orijinalLog = console.log
-console.log = function (...args) {
-    const logStr = args.join(' ')
-    // Saniyede bir gelen HUD durum paketlerini (Can, Mana, AP, Yetenek) konsola basma
-    if (
-        logStr.includes('⛁') ||
-        logStr.includes('⚗') ||
-        logStr.includes('❤ Can') ||
-        logStr.includes('🔥 Yetenek') ||
-        (logStr.includes('Can') && logStr.includes('Mana') && logStr.includes('AP'))
-    ) {
-        return
-    }
-    orijinalLog.apply(console, args)
-    botEvents.emit('log', logStr)
-}
+const orijinalError = console.error
+
 
 // ==========================================
-// 1. AYARLAR (Profil tabanlı dinamik yapılandırma)
+// 1. SABİT TANIMLAR VE YARDIMCI METOTLAR
 // ==========================================
-const AYARLAR = {
-    // Bot Giriş Bilgileri (Varsayılanlar - Profil ile dinamik ezilir)
-    SUNUCU_IP: 'oyna.aesirmc.com',
-    KULLANICI_ADI: 'huggecool',
-    SIFRE: '', // Güvenlik gereği şifre safeStorage üzerinden dinamik yüklenir
-    ADA_SAHIBI: 'EmsalSizOFC',
-
-    // Test ve Konsol Ayarları
-    SADECE_BILGI_MODU: true,           // TRUE: Minyonlara yürümez/eşya almaz, sadece okur
-    SOHBET_MESAJLARINI_GOSTER: false,  // FALSE: Oyuncuların chat mesajlarını konsola YAZDIRMAZ
-
-    // Minyon ve Toplama Ayarları
-    HEDEF_DOLULUK_YUZDESI: 80,         // Sadece %80 ve üzeri dolan minyonları ve kovanları toplar
-    KONTROL_ARALIGI_SANIYE: 30,        // Kaç saniyede bir /minyon ve /kovanlar kontrol edilsin
-
-    // Kovan Bal Toplama Ayarları
-    OTO_BAL_TOPLAMA: true,             // TRUE: %80 ve üzeri dolan kovanları otomatik hasat edip sandığa koyar
-
-    // JSON ve API Ayarları
-    JSON_DOSYASI_KAYDET: true,         // TRUE: Her kontrolde minyonlar.json dosyasını günceller
-    JSON_DOSYA_YOLU: appPaths ? appPaths.getMinyonlarJsonPath() : './minyonlar.json',
-    KOVAN_JSON_DOSYA_YOLU: appPaths ? appPaths.getKovanlarJsonPath() : './kovanlar.json',
-    KONSOLA_JSON_YAZDIR: false,        // TRUE: Minyon tarama sonucunu konsola JSON olarak da yazdırır
-    API_AKTIF: true,                   // TRUE: Mini REST API sunucusunu başlatır (http://localhost:3000)
-    API_PORT: 3000,                    // REST API portu
-
-    // Sandık Koordinatı (Ayarlandı: X:20 Y:65 Z:16)
-    SANDIK_KONUMU: {
-        x: 20,
-        y: 65,
-        z: 16
-    },
-
-    // Çanta Taşma Koruması Ayarları
-    TASMA_KORUMASI: true,              // TRUE: Hasat sırasında çanta dolarsa sandığa ara boşaltma yapar
-    TASMA_BOS_SLOT_ESIK: 2             // Çantada kalan boş slot bu sayı veya altına düşerse ara boşaltma tetiklenir
-}
-
-// Sandığa KOYULMAYACAK (Botun çantasında kalacak) eşyalar
 const KORUNACAK_ESYALAR = [
     'pickaxe',        // Kazmalar
     'axe',            // Baltalar
@@ -292,7 +235,74 @@ function esyaninHamMetinleriniAl(esya) {
 }
 
 // Oyuncunun anlık 36 slotluk ana envanterini ve zırhlarını döner
-function envanterBilgisiAl() {
+
+// ==========================================
+// 2. ÇOKLU BOT ÖRNEK FABRİKASI (BOT INSTANCE FACTORY)
+// ==========================================
+function createBotInstance(initialProfile = null, initialPassword = null) {
+    const profileId = initialProfile ? initialProfile.id : 'default'
+    const botEvents = new EventEmitter()
+    let tracker = harvestTracker ? (harvestTracker.getTracker ? harvestTracker.getTracker(profileId) : harvestTracker) : null
+    let ardisikAtilmaSayisi = 0
+
+    // Profil bazlı izole AYARLAR
+    const AYARLAR = {
+        SUNUCU_IP: initialProfile?.server || 'oyna.aesirmc.com',
+        KULLANICI_ADI: initialProfile?.username || 'huggecool',
+        SIFRE: initialPassword || '',
+        ADA_SAHIBI: initialProfile?.islandOwner || 'EmsalSizOFC',
+
+        SADECE_BILGI_MODU: initialProfile?.settings?.testMode !== undefined ? Boolean(initialProfile.settings.testMode) : true,
+        SOHBET_MESAJLARINI_GOSTER: initialProfile?.settings?.showChatMessages !== undefined ? Boolean(initialProfile.settings.showChatMessages) : false,
+
+        HEDEF_DOLULUK_YUZDESI: initialProfile?.settings?.targetPercentage ? Number(initialProfile.settings.targetPercentage) : 80,
+        KONTROL_ARALIGI_SANIYE: initialProfile?.settings?.checkInterval ? Number(initialProfile.settings.checkInterval) : 30,
+
+        OTO_BAL_TOPLAMA: initialProfile?.settings?.autoHoneyHarvest !== undefined ? Boolean(initialProfile.settings.autoHoneyHarvest) : true,
+
+        JSON_DOSYASI_KAYDET: true,
+        JSON_DOSYA_YOLU: appPaths ? appPaths.getMinyonlarJsonPath(profileId) : './minyonlar.json',
+        KOVAN_JSON_DOSYA_YOLU: appPaths ? appPaths.getKovanlarJsonPath(profileId) : './kovanlar.json',
+        KONSOLA_JSON_YAZDIR: false,
+
+        SANDIK_KONUMU: initialProfile?.settings?.chestLocation || {
+            x: 20,
+            y: 65,
+            z: 16
+        },
+
+        TASMA_KORUMASI: true,
+        TASMA_BOS_SLOT_ESIK: 2
+    }
+
+    // Bot örnek loglayıcısı (Lexical shadowing)
+    const console = {
+        ...global.console,
+        log: function (...args) {
+            const logStr = args.join(' ')
+            if (
+                logStr.includes('⛁') ||
+                logStr.includes('⚗') ||
+                logStr.includes('❤ Can') ||
+                logStr.includes('🔥 Yetenek') ||
+                (logStr.includes('Can') && logStr.includes('Mana') && logStr.includes('AP'))
+            ) {
+                return
+            }
+            const botTag = `[${AYARLAR.KULLANICI_ADI || 'Bot'}]`
+            orijinalLog.call(global.console, botTag, ...args)
+            botEvents.emit('log', `${botTag} ${logStr}`)
+        },
+        error: function (...args) {
+            const logStr = args.join(' ')
+            const botTag = `[${AYARLAR.KULLANICI_ADI || 'Bot'}]`
+            if (orijinalError) orijinalError.call(global.console, botTag, ...args)
+            botEvents.emit('log', `${botTag} [HATA] ${logStr}`)
+        }
+    }
+
+    // Bot Gövdesi ve Fonksiyonları
+    function envanterBilgisiAl() {
     if (!bot || !bot.inventory || !bot.inventory.slots) {
         return {
             doluSlot: 0,
@@ -423,7 +433,6 @@ let bot = null
 let islemde = false            // Bot o an bir işlem yapıyorsa üst üste binmesin
 let afkKonumu = null           // Botun adada durduğu başlangıç noktası
 let kontrolZamanlayici = null  // Otomatik kontrol döngüsü
-let apiSunucusu = null         // HTTP REST API sunucusu
 let inLobby = false
 let inSkyblock = false
 let isGoGonderildi = false
@@ -557,6 +566,39 @@ function lobiyeGirisYapildi(kaynak = 'Bilinmiyor') {
             skyblockaGecisBaslat('Lobi Girişi Doğrulandı')
         }
     }, 1800)
+}
+
+function lobiyeDusuldu(sebep = 'Bilinmiyor') {
+    if (!bot || kullaniciDurdurdu) return
+    console.log(`[UYARI] Botun lobide olduğu algılandı (${sebep})! Skyblock ada modu askıya alınıyor...`)
+
+    adada = false
+    inSkyblock = false
+    isGoGonderildi = false
+
+    if (isGoRetryTimeout) {
+        clearTimeout(isGoRetryTimeout)
+        isGoRetryTimeout = null
+    }
+    if (kontrolZamanlayici) {
+        clearInterval(kontrolZamanlayici)
+        kontrolZamanlayici = null
+    }
+    if (bot.pathfinder) {
+        try { bot.pathfinder.stop() } catch (e) { }
+    }
+
+    mevcutSunucu = 'Lobide'
+    scoreboardBaslik = 'AESIR LOBI'
+
+    try {
+        botEvents.emit('sunucuGuncellendi', { mevcutSunucu, scoreboardBaslik })
+        if (typeof durumAl === 'function') {
+            botEvents.emit('durum', durumAl())
+        }
+    } catch (e) { }
+
+    skyblockaGecisBaslat(sebep)
 }
 
 function skyblockaGecisBaslat(kaynak = 'Bilinmiyor') {
@@ -754,27 +796,30 @@ function tumScoreboardMetinleriniAl() {
     const satirlar = []
     if (!bot) return satirlar
 
-    if (scoreboardBaslik) {
-        satirlar.push(scoreboardBaslik)
-    }
-
+    let aktifBaslik = ''
     if (bot.scoreboards) {
         for (const sb of Object.values(bot.scoreboards)) {
-            if (sb.title) {
+            if (sb && sb.title) {
                 const t = parseScoreboardMetni(sb.title)
-                if (t) satirlar.push(t)
+                if (t && t.trim().length > 0) {
+                    satirlar.push(t.trim())
+                    if (!aktifBaslik) aktifBaslik = t.trim()
+                }
             }
-            if (sb.items) {
+            if (sb && sb.items) {
                 for (const item of sb.items) {
                     try {
                         if (item.displayName) {
                             const dn = typeof item.displayName.toString === 'function'
                                 ? item.displayName.toString()
                                 : String(item.displayName)
-                            if (dn) satirlar.push(dn)
+                            if (dn && dn.trim().length > 0) {
+                                satirlar.push(dn.trim())
+                            }
                         }
                         if (item.name) {
-                            satirlar.push(item.name)
+                            const iname = String(item.name).trim()
+                            if (iname) satirlar.push(iname)
                         }
                     } catch (e) { }
                 }
@@ -782,8 +827,11 @@ function tumScoreboardMetinleriniAl() {
         }
     }
 
-    // Not: bot.tablist kaldırıldı çünkü BungeeCord tablist başlığı/altlığı tüm sunucularda
-    // (Giriş ve Lobi dahil) genel duyuru ("Skyblock") içerdiğinden lobi tespiti bozuluyordu.
+    if (aktifBaslik) {
+        scoreboardBaslik = aktifBaslik
+    } else if (satirlar.length === 0 && scoreboardBaslik) {
+        satirlar.push(scoreboardBaslik)
+    }
 
     return satirlar
 }
@@ -820,44 +868,49 @@ function sunucuKonumunuTespitEt() {
         'lobi 3',
         'lobi 4',
         'lobi 5',
-        'aesir lobi'
+        'aesir lobi',
+        'aesir network',
+        'aesirmc',
+        'aesirdc',
+        'discord.gg/aesir',
+        'sunucu secimi',
+        'oyun secimi',
+        'lobi'
     ]
 
     const skyblockKesinVar = skyblockKesinAnahtarlar.some(k => birlestirilmis.includes(k))
     const baslikSkyblock = cleanBaslik.includes('skyblock')
-    const baslikLobi = cleanBaslik.includes('lobi') || cleanBaslik.includes('ana lobi') || cleanBaslik.includes('cakma lobi')
+    const baslikLobi = cleanBaslik.includes('lobi') || cleanBaslik.includes('ana lobi') || cleanBaslik.includes('cakma lobi') || cleanBaslik.includes('aesir network')
+    const lobiVar = baslikLobi || lobiAnahtarlar.some(k => birlestirilmis.includes(k))
 
-    // 1. Eğer bot adada ise kesinlikle Skyblock'tadır
-    if (adada) {
-        if (baslikLobi) return 'Lobide'
-        return 'Skyblock'
-    }
-
-    // 2. Scoreboard başlığı doğrudan Skyblock içeriyorsa (Örn: 'AESIR SKYBLOCK')
-    // Başlıkta Skyblock yazıyorsa bu kesinlikle Skyblock sunucusudur!
-    if (baslikSkyblock && !baslikLobi) {
-        return 'Skyblock'
-    }
-
-    // 3. Scoreboard'da ada verisi (Ada Sahibi, Ada Seviyesi vb.) varsa kesinlikle Skyblock'tur
-    if (skyblockKesinVar) {
-        return 'Skyblock'
-    }
-
-    // 4. Scoreboard başlığı lobi içeriyorsa (Örn: 'AESIR LOBI')
-    if (baslikLobi) {
+    // 1. Kesin Lobi Tespiti: Tabloda lobi/network anahtarı varsa ve HİÇBİR Skyblock ada/başlık göstergesi yoksa
+    if (lobiVar && !skyblockKesinVar && !baslikSkyblock) {
         return 'Lobide'
     }
 
-    // 5. Bot zaten Skyblock'taysa ve açıkça lobiye düşmemişse Skyblock'ta kalmaya devam etsin (Flip-flop önleme)
-    if (inSkyblock) {
+    // 2. Kesin Skyblock Tespiti: Başlıkta Skyblock varsa veya tablosunda ada verileri varsa
+    if (baslikSkyblock || skyblockKesinVar) {
         return 'Skyblock'
     }
 
-    // 6. Lobi belirteçleri varsa
-    const lobiVar = lobiAnahtarlar.some(k => birlestirilmis.includes(k)) || cleanBaslik.includes('aesir network')
+    // 3. Tablo dolu fakat hiçbir Skyblock izi yoksa (Lobi/Fallback)
+    if (satirlar.length > 0 && !skyblockKesinVar && !baslikSkyblock) {
+        return 'Lobide'
+    }
+
+    // 4. Lobi belirteci varsa
     if (lobiVar) {
         return 'Lobide'
+    }
+
+    // 5. Bot adada ise ve lobi göstergesi yoksa
+    if (adada) {
+        return 'Skyblock'
+    }
+
+    // 6. Bot Skyblock'taysa
+    if (inSkyblock) {
+        return 'Skyblock'
     }
 
     // 7. Durum bayraklarına göre fallback
@@ -901,21 +954,7 @@ function kontrolEtScoreboard(baslik, ekMaddeler = []) {
             }
         } else if (yeniSunucu === 'Lobide') {
             if (adada || inSkyblock) {
-                console.log(`[UYARI] Scoreboard tablosundan botun lobiye düştüğü algılandı!`)
-                adada = false
-                inSkyblock = false
-                isGoGonderildi = false
-                if (kontrolZamanlayici) {
-                    clearInterval(kontrolZamanlayici)
-                    kontrolZamanlayici = null
-                }
-                if (bot.pathfinder) {
-                    try { bot.pathfinder.stop() } catch (e) { }
-                }
-                mevcutSunucu = 'Lobide'
-                botEvents.emit('sunucuGuncellendi', { mevcutSunucu, scoreboardBaslik })
-                if (typeof durumAl === 'function') botEvents.emit('durum', durumAl())
-                skyblockaGecisBaslat('Scoreboard Lobi Tespiti')
+                lobiyeDusuldu('Scoreboard Lobi Tespiti')
             } else if (mevcutSunucu !== 'Lobide') {
                 mevcutSunucu = 'Lobide'
                 console.log(`[SCOREBOARD] Tablodan algılandı: Mevcut Sunucu: Lobide (Başlık: "${scoreboardBaslik}")`)
@@ -938,25 +977,13 @@ function sunucuDurumuPeriyodikKontrol() {
         const lobiyeYeniDusmus = adada || inSkyblock || mevcutSunucu !== 'Lobide'
         if (lobiyeYeniDusmus) {
             console.log('[UYARI] 5 dakikalık kontrolde botun lobide olduğu tespit edildi (Bakım veya yeniden başlatma sonrası lobiye düşmüş olabilir)! Ada modu askıya alınıyor...')
-            adada = false
-            inSkyblock = false
-            isGoGonderildi = false
-
-            if (kontrolZamanlayici) {
-                clearInterval(kontrolZamanlayici)
-                kontrolZamanlayici = null
-            }
-            if (bot.pathfinder) {
-                try { bot.pathfinder.stop() } catch (e) { }
-            }
+            lobiyeDusuldu('5 Dakikalık Lobi Kontrolü')
+        } else {
+            mevcutSunucu = 'Lobide'
+            botEvents.emit('sunucuGuncellendi', { mevcutSunucu, scoreboardBaslik })
+            if (typeof durumAl === 'function') botEvents.emit('durum', durumAl())
+            skyblockaGecisBaslat('5 Dakikalık Lobi Kontrolü')
         }
-
-        mevcutSunucu = 'Lobide'
-        botEvents.emit('sunucuGuncellendi', { mevcutSunucu, scoreboardBaslik })
-        if (typeof durumAl === 'function') botEvents.emit('durum', durumAl())
-
-        console.log('[İŞLEM] Lobide olunduğu için Skyblock giriş modu tetikleniyor...')
-        skyblockaGecisBaslat('5 Dakikalık Lobi Kontrolü')
 
     } else if (tespit === 'Skyblock') {
         mevcutSunucu = 'Skyblock'
@@ -1160,116 +1187,7 @@ function kovanVerileriniKaydetVeBagla(kovanListesi) {
     botEvents.emit('kovanlar', bot.kovanlar)
 }
 
-// Harici erişim için yerel REST API sunucusu (http://localhost:3000/api/minyonlar & /api/kovanlar)
-function apiSunucusunuBaslat() {
-    if (!AYARLAR.API_AKTIF || apiSunucusu) return
 
-    try {
-        apiSunucusu = http.createServer((req, res) => {
-            // CORS başlıkları (tarayıcıdan veya scriptlerden rahatça erişilsin)
-            res.setHeader('Access-Control-Allow-Origin', '*')
-            res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
-            res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-            res.setHeader('Content-Type', 'application/json; charset=utf-8')
-
-            if (req.method === 'OPTIONS') {
-                res.writeHead(204)
-                res.end()
-                return
-            }
-
-            const url = req.url.split('?')[0]
-
-            // 1. Ana sayfa: Genel özet (hem minyon hem kovan)
-            if (url === '/' || url === '/api') {
-                const yanit = {
-                    durum: 'aktif',
-                    sunucu: AYARLAR.SUNUCU_IP,
-                    hesap: AYARLAR.KULLANICI_ADI,
-                    mevcutSunucu: mevcutSunucu,
-                    scoreboardBaslik: scoreboardBaslik,
-                    sonGuncellemeMinyonlar: bot?.minyonlar?._sonGuncelleme || null,
-                    toplamMinyon: bot?.minyonlar?._liste?.length || 0,
-                    minyonlar: bot?.minyonlar || {},
-                    sonGuncellemeKovanlar: bot?.kovanlar?._sonGuncelleme || null,
-                    toplamKovan: bot?.kovanlar?._liste?.length || 0,
-                    kovanlar: bot?.kovanlar || {}
-                }
-                res.writeHead(200)
-                res.end(JSON.stringify(yanit, null, 2))
-                return
-            }
-
-            // 2. Tüm minyonlar
-            if (url === '/api/minyonlar' || url === '/minyonlar') {
-                const yanit = {
-                    durum: 'aktif',
-                    sunucu: AYARLAR.SUNUCU_IP,
-                    hesap: AYARLAR.KULLANICI_ADI,
-                    sonGuncelleme: bot?.minyonlar?._sonGuncelleme || null,
-                    toplamMinyon: bot?.minyonlar?._liste?.length || 0,
-                    minyonlar: bot?.minyonlar || {}
-                }
-                res.writeHead(200)
-                res.end(JSON.stringify(yanit, null, 2))
-                return
-            }
-
-            // 3. Tüm kovanlar
-            if (url === '/api/kovanlar' || url === '/kovanlar') {
-                const yanit = {
-                    durum: 'aktif',
-                    sunucu: AYARLAR.SUNUCU_IP,
-                    hesap: AYARLAR.KULLANICI_ADI,
-                    sonGuncelleme: bot?.kovanlar?._sonGuncelleme || null,
-                    toplamKovan: bot?.kovanlar?._liste?.length || 0,
-                    kovanlar: bot?.kovanlar || {}
-                }
-                res.writeHead(200)
-                res.end(JSON.stringify(yanit, null, 2))
-                return
-            }
-
-            // 4. Belirli bir kovana istek: örn: /api/kovanlar/kovan1 veya /kovan1
-            if (url.startsWith('/api/kovanlar/') || url.startsWith('/kovanlar/')) {
-                const kovanUrl = url.replace(/^\/(api\/kovanlar\/|kovanlar\/)/, '').replace(/[^a-z0-9_]/g, '')
-                if (kovanUrl && bot && bot[kovanUrl]) {
-                    res.writeHead(200)
-                    res.end(JSON.stringify(bot[kovanUrl], null, 2))
-                    return
-                }
-                res.writeHead(404)
-                res.end(JSON.stringify({ hata: 'Kovan bulunamadı.', aranan: kovanUrl }))
-                return
-            }
-
-            // 5. Belirli bir minyona istek: örn: /api/minyonlar/oduncuminyon veya /oduncuminyon
-            const temizUrl = url.replace(/^\/(api\/minyonlar\/|minyonlar\/|api\/)?/, '').replace(/[^a-z0-9_]/g, '')
-            if (temizUrl && bot && bot[temizUrl]) {
-                res.writeHead(200)
-                res.end(JSON.stringify(bot[temizUrl], null, 2))
-                return
-            }
-
-            res.writeHead(404)
-            res.end(JSON.stringify({ hata: 'Kayıt bulunamadı.', aranan: temizUrl }))
-        })
-
-        apiSunucusu.on('error', (err) => {
-            if (err.code === 'EADDRINUSE') {
-                console.log(`[API UYARI] Port ${AYARLAR.API_PORT} kullanımda olduğundan REST API başlatılamadı.`)
-            } else {
-                console.log(`[API HATA] ${err.message}`)
-            }
-        })
-
-        apiSunucusu.listen(AYARLAR.API_PORT, () => {
-            console.log(`[API] REST API çalışıyor: http://localhost:${AYARLAR.API_PORT}/api/minyonlar & /api/kovanlar`)
-        })
-    } catch (e) {
-        console.error('[API HATA] Sunucu başlatılırken hata oluştu:', e.message)
-    }
-}
 
 // ADIM 1: /minyon Menüsünü Açıp Minyonları Tara ve Bilgilerini Konsola Yazdır
 async function minyonlariTara() {
@@ -1292,6 +1210,10 @@ async function minyonlariTara() {
 
     if (!menu) {
         console.log('[UYARI] /minyon menüsü açılmadı veya zaman aşımına uğradı.')
+        const anlik = sunucuKonumunuTespitEt()
+        if (anlik === 'Lobide') {
+            lobiyeDusuldu('/minyon komutuna yanıt alınamadı, bot lobide')
+        }
         return []
     }
 
@@ -1439,6 +1361,10 @@ async function kovanlariTara() {
 
     if (!menu) {
         console.log('[UYARI] /kovanlar menüsü açılmadı veya zaman aşımına uğradı.')
+        const anlik = sunucuKonumunuTespitEt()
+        if (anlik === 'Lobide') {
+            lobiyeDusuldu('/kovanlar komutuna yanıt alınamadı, bot lobide')
+        }
         return []
     }
 
@@ -1670,17 +1596,17 @@ async function kovandanBalHasatEt(kovanHedef) {
     const simdikiEnvanter = envanterEsyaSayilariAl()
     const farklar = envanterFarkiHesapla(oncekiEnvanter, simdikiEnvanter)
 
-    if (harvestTracker) {
+    if (tracker) {
         if (farklar.length > 0) {
             for (const f of farklar) {
-                harvestTracker.hasatEkle(f.name, f.displayName, f.count, kovan?.isim || 'Kovan')
+                tracker.hasatEkle(f.name, f.displayName, f.count, kovan?.isim || 'Kovan')
             }
         } else {
             // Varsayılan bal şişesi kaydı (garantiye al)
-            harvestTracker.hasatEkle('honey_bottle', 'Bal Şişesi', 1, kovan?.isim || 'Kovan')
+            tracker.hasatEkle('honey_bottle', 'Bal Şişesi', 1, kovan?.isim || 'Kovan')
         }
         try {
-            botEvents.emit('hasatGuncellendi', harvestTracker.getAnalitik())
+            botEvents.emit('hasatGuncellendi', tracker.getAnalitik())
         } catch (e) { }
     }
 
@@ -1882,12 +1808,12 @@ async function minyondanEsyalariTopla(minyon) {
 
     const simdikiEnvanter = envanterEsyaSayilariAl()
     const farklar = envanterFarkiHesapla(oncekiEnvanter, simdikiEnvanter)
-    if (harvestTracker && farklar.length > 0) {
+    if (tracker && farklar.length > 0) {
         for (const f of farklar) {
-            harvestTracker.hasatEkle(f.name, f.displayName, f.count, minyon?.isim || 'Minyon')
+            tracker.hasatEkle(f.name, f.displayName, f.count, minyon?.isim || 'Minyon')
         }
         try {
-            botEvents.emit('hasatGuncellendi', harvestTracker.getAnalitik())
+            botEvents.emit('hasatGuncellendi', tracker.getAnalitik())
         } catch (e) { }
     }
 
@@ -2056,10 +1982,10 @@ async function sandigaEsyalariKoy() {
             console.log(`[UYARI] Sandık tamamen dolu! Bazı eşyalar sandığa sığmadı.`)
         }
         console.log(`[BAŞARILI] Sandığa aktarım tamamlandı! (${aktarilanSayisi} adet eşya aktarıldı)`)
-        if (harvestTracker && aktarilanSayisi > 0) {
-            harvestTracker.bosaltmaSeferiKaydet(aktarilanSayisi)
+        if (tracker && aktarilanSayisi > 0) {
+            tracker.bosaltmaSeferiKaydet(aktarilanSayisi)
             try {
-                botEvents.emit('hasatGuncellendi', harvestTracker.getAnalitik())
+                botEvents.emit('hasatGuncellendi', tracker.getAnalitik())
             } catch (e) { }
         }
     } catch (döngüHatasi) {
@@ -2081,6 +2007,10 @@ async function sandigaEsyalariKoy() {
 
 // ADIM 4: Tüm Aşamaları Birleştiren Ana Görev
 async function otomatikMinyonGorevi() {
+    if (!bot || !adada || !inSkyblock || mevcutSunucu !== 'Skyblock') {
+        return
+    }
+
     if (islemde) {
         console.log('[BİLGİ] Bot şu anda başka bir işlem yapıyor (meşgul), minyon/kovan kontrolü bu döngüde ertelendi.')
         return
@@ -2091,10 +2021,12 @@ async function otomatikMinyonGorevi() {
     try {
         // 1. Minyonları kontrol et ve bilgileri konsola yazdır
         const bulunanMinyonlar = await minyonlariTara()
+        if (!bot || !adada || !inSkyblock || mevcutSunucu !== 'Skyblock') return
 
         // 1b. Kovanları kontrol et ve bilgileri konsola yazdır
         await bekle(1500)
         const bulunanKovanlar = await kovanlariTara()
+        if (!bot || !adada || !inSkyblock || mevcutSunucu !== 'Skyblock') return
 
         // 2. OTOMATİK KOVAN BAL HASADI: Eğer Oto Bal açıksa %80+ olan kovanları topla ve sandığa koy
         if (AYARLAR.OTO_BAL_TOPLAMA) {
@@ -2104,7 +2036,7 @@ async function otomatikMinyonGorevi() {
                 if (dolanKovanlar.length > 0) {
                     console.log(`\n🍯 [OTO BAL] %${AYARLAR.HEDEF_DOLULUK_YUZDESI} doluluğu aşan ${dolanKovanlar.length} adet kovan tespit edildi! Otomatik hasat ve sandık aktarımı başlatılıyor...`)
                     await tumKovanlardanBalTopla(AYARLAR.HEDEF_DOLULUK_YUZDESI)
-                } else {
+                } else if (bulunanKovanlar && bulunanKovanlar.length > 0) {
                     console.log(`🍯 [OTO BAL] Kovanlar kontrol edildi: Henüz %${AYARLAR.HEDEF_DOLULUK_YUZDESI} doluluğa ulaşan kovan yok.`)
                 }
             } catch (e) {
@@ -2113,7 +2045,9 @@ async function otomatikMinyonGorevi() {
         }
 
         // 3. MİNYON BİLGİ MODU: Minyonlar sadece otomatik taranır (Eşya toplama devre dışı)
-        console.log("[MİNYONLAR] Minyon bilgileri otomatik olarak güncellendi (Bilgi alma modu aktif).\n");
+        if (bulunanMinyonlar && bulunanMinyonlar.length > 0) {
+            console.log("[MİNYONLAR] Minyon bilgileri otomatik olarak güncellendi (Bilgi alma modu aktif).\n");
+        }
     } catch (hata) {
         console.log(`[HATA] Görev sırasında beklenmeyen bir hata oluştu: ${hata.message}`)
     } finally {
@@ -2169,8 +2103,6 @@ function createBot() {
     islemde = false
     girisBasarili = false
 
-    // Mini REST API sunucusunu başlat (http://localhost:3000/api/minyonlar)
-    apiSunucusunuBaslat()
     stdinBaslat()
 
     // Eğer önceki bir bot örneği varsa temizle
@@ -2339,6 +2271,48 @@ function createBot() {
             setTimeout(adayaUlasildi, 2000)
         }
 
+        // 5. Bilinmeyen komut hatası algılanırsa (Örn: /minyon, /kovanlar veya /is lobide çalışmaz)
+        const bilinmeyenKomut =
+            temizMsg.includes('unknown or incomplete command') ||
+            temizMsg.includes('minyon<--[here]') ||
+            temizMsg.includes('kovanlar<--[here]') ||
+            temizMsg.includes('is<--[here]') ||
+            temizMsg.includes('unknown command') ||
+            temizMsg.includes('bilinmeyen komut') ||
+            temizMsg.includes('bu komut bulunamadi')
+
+        if (bilinmeyenKomut && (inSkyblock || adada || mevcutSunucu === 'Skyblock')) {
+            console.log(`[UYARI] Skyblock komutu bu sunucuda bulunamadı ("${msg}")! Botun lobide olduğu algılandı.`)
+            lobiyeDusuldu('Bilinmeyen Komut Hatası (/minyon veya /kovanlar lobide mevcut değil)')
+            return
+        }
+
+        // 5b. Lobi PvP Arenası ölüm mesajları algılanırsa (Adada PvP veya genel ölüm anonsu olmaz)
+        const lobiPvpMesaji =
+            temizMsg.includes('adli oyuncuyu oldurdu') ||
+            temizMsg.includes('adli oyuncuyu öldürdü') ||
+            temizMsg.includes('adlı oyuncuyu öldürdü') ||
+            temizMsg.includes('adlı oyuncuyu oldurdu') ||
+            temizMsg.includes('adli oyuncuyu katletti') ||
+            temizMsg.includes('adli oyuncuyu vurdu')
+
+        if (lobiPvpMesaji && (inSkyblock || adada)) {
+            console.log(`[UYARI] Lobi PvP arenası mesajı algılandı ("${msg}")! Bot lobide bulunuyor.`)
+            lobiyeDusuldu('Lobi PvP Arenası Ölüm Mesajı Algılandı')
+            return
+        }
+
+        // 5c. Lobi genel duyuru / discord mesajları
+        const lobiDuyuru =
+            temizMsg.includes('discord.gg/aesirdc') ||
+            (temizMsg.includes('aesirdc') && !temizMsg.includes('skyblock'))
+
+        if (lobiDuyuru && (inSkyblock || adada)) {
+            console.log(`[UYARI] Lobi genel duyurusu algılandı ("${msg}")! Bot lobide bulunuyor.`)
+            lobiyeDusuldu('Lobi Genel Duyurusu Algılandı')
+            return
+        }
+
         // 6. Adaya aktarılamadı (unable to connect, sunucu dolu, vb.) mesajı gelirse tekrar /is go dene
         const adayaGirisBasarisiz =
             temizMsg.includes('unable to connect') ||
@@ -2381,28 +2355,15 @@ function createBot() {
             temizMsg.includes('sunucu yeniden baslatiliyor') ||
             temizMsg.includes('sunucu kapaniyor') ||
             temizMsg.includes('kicked whilst connecting') ||
-            temizMsg.includes('fallback server')
+            temizMsg.includes('fallback server') ||
+            temizMsg.includes('the server you were previously on went down') ||
+            temizMsg.includes('lost connection to server') ||
+            temizMsg.includes('server closed')
 
         if (lobiyeAktarildi) {
             console.log(`[UYARI] Sunucudan lobiye düşme mesajı alındı ("${msg}")! Ada modu askıya alınıyor...`)
-            adada = false
-            inSkyblock = false
-            isGoGonderildi = false
-            if (isGoRetryTimeout) {
-                clearTimeout(isGoRetryTimeout)
-                isGoRetryTimeout = null
-            }
-            if (kontrolZamanlayici) {
-                clearInterval(kontrolZamanlayici)
-                kontrolZamanlayici = null
-            }
-            if (bot.pathfinder) {
-                try { bot.pathfinder.stop() } catch (e) { }
-            }
-            mevcutSunucu = 'Lobide'
-            botEvents.emit('sunucuGuncellendi', { mevcutSunucu, scoreboardBaslik })
-            if (typeof durumAl === 'function') botEvents.emit('durum', durumAl())
-            skyblockaGecisBaslat('Lobiye Düşme Mesajı')
+            lobiyeDusuldu('Lobiye Düşme Mesajı: ' + msg)
+            return
         }
 
         // 8. Skyblock giriş engeli / bakım / dolu mesajı
@@ -2465,12 +2426,61 @@ function createBot() {
                 isGoRetryTimeout = null
             }
             setTimeout(adayaUlasildi, 2500)
+            return
+        }
+
+        // Durum 4: Bot Skyblock'taydı veya adadaydı fakat sunucu respawn paketi yolladı (BungeeCord lobiye aktarmış veya bot ölmüş olabilir)
+        if (inSkyblock || adada) {
+            console.log('[DURUM] Bot Skyblock veya adadayken Respawn algılandı! Konum kontrol ediliyor...')
+            adada = false
+            isGoGonderildi = false
+            if (isGoRetryTimeout) {
+                clearTimeout(isGoRetryTimeout)
+                isGoRetryTimeout = null
+            }
+            if (kontrolZamanlayici) {
+                clearInterval(kontrolZamanlayici)
+                kontrolZamanlayici = null
+            }
+            if (bot.pathfinder) {
+                try { bot.pathfinder.stop() } catch (e) { }
+            }
+
+            setTimeout(() => {
+                if (!bot || kullaniciDurdurdu) return
+                const konum = sunucuKonumunuTespitEt()
+                console.log(`[DURUM] Respawn sonrası sunucu tespiti: ${konum}`)
+                if (konum === 'Lobide') {
+                    lobiyeDusuldu('Respawn Sonrası Lobi Tespiti')
+                } else if (konum === 'Skyblock') {
+                    console.log('[BİLGİ] Hala Skyblock sunucusundayız, adaya geri gidiliyor (/is go)...')
+                    inSkyblock = true
+                    adayaGit()
+                } else {
+                    lobiyeDusuldu('Respawn Sonrası Bilinmeyen Konum Tespiti')
+                }
+            }, 1500)
+            return
         }
     })
 
     bot.on('kicked', (reason) => {
+        ardisikAtilmaSayisi++
         console.log('[ATILDI]:', reason)
-        botEvents.emit('durum', { durum: 'Sunucudan Atıldı', detay: reason, calisiyor: false })
+        const reasonStr = typeof reason === 'object' ? JSON.stringify(reason) : String(reason)
+        const lowerReason = reasonStr.toLowerCase()
+
+        // Kalıcı/Kritik atılma nedenleri (Şifre hatası, ban, bakım, whitelist)
+        const kritikNedenler = ['sifre', 'şifre', 'password', 'ban', 'yasak', 'whitelist', 'bakim', 'kayit', 'register']
+        const isKritik = kritikNedenler.some(k => lowerReason.includes(k))
+
+        if (isKritik || ardisikAtilmaSayisi >= 5) {
+            kullaniciDurdurdu = true // Otomatik yeniden bağlanmayı engelle
+            console.log(`[UYARI] Kritik atılma nedeni algılandı veya ardışık 5 kez atıldı. Tekrar bağlanma durduruldu: ${reasonStr}`)
+            botEvents.emit('durum', { durum: 'Sunucudan Atıldı (Durduruldu)', detay: reasonStr, calisiyor: false })
+        } else {
+            botEvents.emit('durum', { durum: 'Sunucudan Atıldı', detay: reasonStr, calisiyor: true })
+        }
     })
 
     bot.on('error', (err) => {
@@ -2519,9 +2529,10 @@ function createBot() {
             return
         }
 
-        console.log('[BİLGİ] Bağlantı koptu, 5 saniye sonra yeniden bağlanılıyor...')
+        const beklemeSuresi = 5000 + Math.floor(Math.random() * 3000)
+        console.log(`[BİLGİ] Bağlantı koptu, ${(beklemeSuresi / 1000).toFixed(1)} saniye sonra yeniden bağlanılıyor...`)
         botEvents.emit('durum', { durum: 'Bağlantı Koptu', adada: false, calisiyor: true })
-        yenidenBaglanTimer = setTimeout(createBot, 5000)
+        yenidenBaglanTimer = setTimeout(createBot, beklemeSuresi)
     })
 }
 
@@ -2582,6 +2593,11 @@ function botDurdur() {
     scoreboardBaslik = ''
 
     if (bot) {
+        try {
+            if (bot.pathfinder) {
+                bot.pathfinder.stop()
+            }
+        } catch (e) { }
         try {
             console.log('[KONTROL] Bot bağlantısı sonlandırılıyor...')
             bot.quit('Kullanıcı botu durdurdu')
@@ -2696,7 +2712,7 @@ function durumAl() {
         minyonlar: minyonlar,
         kovanlar: kovanlar,
         envanter: envanterBilgisiAl(),
-        hasat: harvestTracker ? harvestTracker.getAnalitik() : null,
+        hasat: tracker ? tracker.getAnalitik() : null,
         islemde: islemde,
         calisiyor: calisiyor,
         adada: Boolean(adada),
@@ -2725,11 +2741,13 @@ const botKontrol = {
             if (profil.settings.checkInterval !== undefined) AYARLAR.KONTROL_ARALIGI_SANIYE = Number(profil.settings.checkInterval)
             if (profil.settings.autoHoneyHarvest !== undefined) AYARLAR.OTO_BAL_TOPLAMA = Boolean(profil.settings.autoHoneyHarvest)
             if (profil.settings.chestLocation) AYARLAR.SANDIK_KONUMU = profil.settings.chestLocation
-            if (profil.settings.apiPort) AYARLAR.API_PORT = Number(profil.settings.apiPort)
         }
         if (appPaths) {
-            AYARLAR.JSON_DOSYA_YOLU = appPaths.getMinyonlarJsonPath()
-            AYARLAR.KOVAN_JSON_DOSYA_YOLU = appPaths.getKovanlarJsonPath()
+            AYARLAR.JSON_DOSYA_YOLU = appPaths.getMinyonlarJsonPath(profil.id)
+            AYARLAR.KOVAN_JSON_DOSYA_YOLU = appPaths.getKovanlarJsonPath(profil.id)
+        }
+        if (harvestTracker && harvestTracker.getTracker) {
+            tracker = harvestTracker.getTracker(profil.id)
         }
         botEvents.emit('ayarGuncellendi', AYARLAR)
         return true
@@ -2933,14 +2951,14 @@ const botKontrol = {
     durumAl: durumAl,
     sunucuKontrolEt: sunucuDurumuPeriyodikKontrol,
     sunucuKonumunuTespitEt: sunucuKonumunuTespitEt,
-    hasatAnalitigiAl: () => harvestTracker ? harvestTracker.getAnalitik() : null,
+    hasatAnalitigiAl: () => tracker ? tracker.getAnalitik() : null,
     hasatAnalitigiSifirla: (sadeceOturum = true) => {
-        if (harvestTracker) {
-            harvestTracker.sifirla(sadeceOturum)
+        if (tracker) {
+            tracker.sifirla(sadeceOturum)
             try {
-                botEvents.emit('hasatGuncellendi', harvestTracker.getAnalitik())
+                botEvents.emit('hasatGuncellendi', tracker.getAnalitik())
             } catch (e) { }
-            return harvestTracker.getAnalitik()
+            return tracker.getAnalitik()
         }
         return null
     },
@@ -2948,10 +2966,22 @@ const botKontrol = {
     tasmaKorumasiKontrolVeBosalt: (kaynak) => tasmaKorumasiKontrolVeBosalt(kaynak)
 }
 
-// Eğer doğrudan `node main.js` ile başlatıldıysa botu çalıştır
+    botKontrol.profileId = profileId
+    botKontrol.profile = initialProfile
+    return botKontrol
+}
+
+// Varsayılan bot örneği (geriye dönük tam uyumluluk)
+const defaultInstance = createBotInstance()
+
+const botKontrol = {
+    createBotInstance,
+    ...defaultInstance,
+    botEvents: defaultInstance.botEvents
+}
+
 if (require.main === module) {
-    kullaniciDurdurdu = false
-    createBot()
+    defaultInstance.baslat()
 }
 
 module.exports = botKontrol

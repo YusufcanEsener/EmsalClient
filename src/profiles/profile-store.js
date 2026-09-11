@@ -11,8 +11,6 @@ const VARSAYILAN_AYARLAR = {
     checkInterval: 30,
     autoHoneyHarvest: true,
     saveJson: true,
-    apiActive: true,
-    apiPort: 3000,
     chestLocation: { x: 20, y: 65, z: 16 },
     protectedItems: [
         'pickaxe', 'axe', 'shovel', 'sword', 'hoe',

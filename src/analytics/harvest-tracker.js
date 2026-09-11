@@ -53,7 +53,8 @@ const ESYA_SOZLUK = {
 }
 
 class HarvestTracker {
-    constructor() {
+    constructor(profileId = null) {
+        this.profileId = profileId
         this.jsonPath = null
         this.kaydetmeTimer = null
         this.oturumBaslangic = Date.now()
@@ -72,7 +73,7 @@ class HarvestTracker {
 
     init() {
         try {
-            this.jsonPath = paths.getHasatAnalitigiJsonPath()
+            this.jsonPath = paths.getHasatAnalitigiJsonPath(this.profileId)
             this.yukle()
         } catch (e) {
             console.error('[ANALİTİK] Hasat takipçisi başlatılırken hata:', e.message)
@@ -317,5 +318,18 @@ class HarvestTracker {
     }
 }
 
-const harvestTracker = new HarvestTracker()
-module.exports = harvestTracker
+const instances = new Map()
+const defaultTracker = new HarvestTracker()
+
+function getTracker(profileId = null) {
+    if (!profileId) return defaultTracker
+    if (!instances.has(profileId)) {
+        instances.set(profileId, new HarvestTracker(profileId))
+    }
+    return instances.get(profileId)
+}
+
+defaultTracker.HarvestTracker = HarvestTracker
+defaultTracker.getTracker = getTracker
+
+module.exports = defaultTracker

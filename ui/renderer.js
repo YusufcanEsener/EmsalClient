@@ -26,6 +26,15 @@ const elBtnEmptyKovanTara = document.getElementById('btnEmptyKovanTara')
 const elChkTestModu = document.getElementById('chkTestModu')
 const elNumHedefYuzde = document.getElementById('numHedefYuzde')
 
+// Multi-Bot DOM Elemanları
+const elBotSwitcherBar = document.getElementById('botSwitcherBar')
+const elBotChipsContainer = document.getElementById('botChipsContainer')
+const elBtnStartAllBots = document.getElementById('btnStartAllBots')
+const elBtnStopAllBots = document.getElementById('btnStopAllBots')
+const elBtnModalStartAll = document.getElementById('btnModalStartAll')
+const elBtnModalStopAll = document.getElementById('btnModalStopAll')
+const elSelectTerminalBotFilter = document.getElementById('selectTerminalBotFilter')
+
 const elBotDurumText = document.getElementById('botDurumText')
 const elBotStatusDot = document.getElementById('botStatusDot')
 const elConnectionDot = document.getElementById('connectionDot')
@@ -318,6 +327,148 @@ if (elBtnBotDurdur) {
 
 if (elBtnDisconnectDurdur) {
     elBtnDisconnectDurdur.addEventListener('click', botuDurdur)
+}
+
+// ===================================================
+// MULTI-BOT ORCHESTRATION & SWITCHER BAR
+// ===================================================
+function updateBotChips(botList) {
+    if (!elBotChipsContainer) return
+    if (!botList || botList.length === 0) {
+        elBotChipsContainer.innerHTML = '<span style="font-size: 11px; color: var(--text-dim); padding: 2px 8px;">Kayıtlı bot yok</span>'
+        return
+    }
+
+    elBotChipsContainer.innerHTML = ''
+    botList.forEach(b => {
+        let dotClass = ''
+        let durumText = '○ Boşta'
+        if (b.isRunning) {
+            if (b.durum && (b.durum.includes('Atıldı') || b.durum.includes('Hata'))) {
+                dotClass = 'error'
+                durumText = '⚠ Atıldı'
+            } else if (b.sunucuda) {
+                dotClass = 'running'
+                durumText = '● Skyblock'
+            } else {
+                dotClass = 'connecting'
+                durumText = '◌ Bağlanıyor'
+            }
+        }
+
+        const chip = document.createElement('div')
+        chip.className = `bot-chip ${b.isSelected ? 'active' : ''} ${b.isRunning ? 'running' : 'stopped'}`
+        chip.setAttribute('data-id', b.id)
+        chip.title = `${b.username} (${b.server}) - ${b.durum}`
+
+        chip.innerHTML = `
+            <span class="bot-chip-dot ${dotClass}"></span>
+            <span class="bot-chip-name">${b.name}</span>
+            <span class="bot-chip-status">${durumText}</span>
+            <button class="bot-chip-action ${b.isRunning ? 'stop' : 'start'}" data-id="${b.id}" title="${b.isRunning ? 'Botu Durdur' : 'Botu Başlat'}">
+                ${b.isRunning ? '⏹' : '▶'}
+            </button>
+        `
+
+        const actBtn = chip.querySelector('.bot-chip-action')
+        if (actBtn) {
+            actBtn.onclick = async (e) => {
+                e.stopPropagation()
+                try {
+                    actBtn.disabled = true
+                    if (b.isRunning) {
+                        await api.bot.stop(b.id)
+                        showToast(`${b.name} durduruldu.`, 'warning')
+                    } else {
+                        await api.bot.start(b.id)
+                        showToast(`${b.name} başlatıldı.`, 'success')
+                    }
+                } catch (err) {
+                    showToast(`İşlem hatası: ${err.message}`, 'error')
+                }
+            }
+        }
+
+        chip.onclick = async () => {
+            try {
+                await api.bot.select(b.id)
+            } catch (err) {
+                showToast(`Bot seçilemedi: ${err.message}`, 'error')
+            }
+        }
+
+        elBotChipsContainer.appendChild(chip)
+    })
+
+    // Update terminal filter dropdown
+    if (elSelectTerminalBotFilter) {
+        const currentVal = elSelectTerminalBotFilter.value
+        elSelectTerminalBotFilter.innerHTML = '<option value="all">Tüm Botlar</option>'
+        botList.forEach(b => {
+            const opt = document.createElement('option')
+            opt.value = b.id
+            opt.textContent = `${b.name} (${b.username})`
+            elSelectTerminalBotFilter.appendChild(opt)
+        })
+        if (currentVal && Array.from(elSelectTerminalBotFilter.options).some(o => o.value === currentVal)) {
+            elSelectTerminalBotFilter.value = currentVal
+        } else {
+            elSelectTerminalBotFilter.value = 'all'
+        }
+    }
+}
+
+async function startAllBots() {
+    try {
+        if (elBtnStartAllBots) elBtnStartAllBots.disabled = true
+        if (elBtnModalStartAll) elBtnModalStartAll.disabled = true
+        showToast('Kayıtlı tüm botlar başlatılıyor...', 'info')
+        const results = await api.bot.startAll()
+        const successCount = (results || []).filter(r => r.basarili).length
+        showToast(`${successCount}/${(results || []).length} bot başlatıldı!`, 'success')
+    } catch (err) {
+        showToast(`Tümünü başlatma hatası: ${err.message}`, 'danger')
+    } finally {
+        if (elBtnStartAllBots) elBtnStartAllBots.disabled = false
+        if (elBtnModalStartAll) elBtnModalStartAll.disabled = false
+        if (typeof loadProfilesList === 'function') loadProfilesList()
+    }
+}
+
+async function stopAllBots() {
+    try {
+        if (elBtnStopAllBots) elBtnStopAllBots.disabled = true
+        if (elBtnModalStopAll) elBtnModalStopAll.disabled = true
+        showToast('Çalışan tüm botlar durduruluyor...', 'warning')
+        await api.bot.stopAll()
+        showToast('Tüm botlar durduruldu.', 'warning')
+    } catch (err) {
+        showToast(`Tümünü durdurma hatası: ${err.message}`, 'danger')
+    } finally {
+        if (elBtnStopAllBots) elBtnStopAllBots.disabled = false
+        if (elBtnModalStopAll) elBtnModalStopAll.disabled = false
+        if (typeof loadProfilesList === 'function') loadProfilesList()
+    }
+}
+
+if (elBtnStartAllBots) elBtnStartAllBots.addEventListener('click', startAllBots)
+if (elBtnStopAllBots) elBtnStopAllBots.addEventListener('click', stopAllBots)
+if (elBtnModalStartAll) elBtnModalStartAll.addEventListener('click', startAllBots)
+if (elBtnModalStopAll) elBtnModalStopAll.addEventListener('click', stopAllBots)
+
+// Bot listesi güncellendiğinde UI bileşenlerini güncelle
+if (window.api && window.api.bot && typeof window.api.bot.onBotListUpdate === 'function') {
+    window.api.bot.onBotListUpdate((list) => {
+        updateBotChips(list)
+        if (typeof elProfilesModal !== 'undefined' && elProfilesModal && elProfilesModal.classList.contains('active')) {
+            if (typeof loadProfilesList === 'function') loadProfilesList()
+        }
+    })
+}
+
+// Başlangıçta bot listesini al ve çipleri çiz
+if (window.api && window.api.bot && typeof window.api.bot.list === 'function') {
+    window.api.bot.list().then(updateBotChips).catch(() => {})
 }
 
 // Minyonları Tara
@@ -699,37 +850,56 @@ elBtnJsonKopyala.addEventListener('click', () => {
 })
 
 // ===================================================
-// TERMINAL FILTER SYSTEM
+// TERMINAL FILTER SYSTEM (MULTI-BOT DESTEKLİ)
 // ===================================================
+function uygulaTerminalFiltre() {
+    if (!elTerminalLog) return
+    const rows = elTerminalLog.querySelectorAll('.terminal-row')
+    const seciliBotId = elSelectTerminalBotFilter ? elSelectTerminalBotFilter.value : 'all'
+    const matchMap = {
+        'error': 'row-error',
+        'warn': 'row-warn',
+        'success': 'row-success'
+    }
+    const targetClass = matchMap[aktifTerminalFiltre]
+
+    rows.forEach(row => {
+        let tipUygun = true
+        if (aktifTerminalFiltre !== 'all') {
+            if (targetClass && !row.classList.contains(targetClass)) {
+                tipUygun = false
+            }
+        }
+        let botUygun = true
+        if (seciliBotId !== 'all') {
+            if (row.dataset.botId && row.dataset.botId !== seciliBotId) {
+                botUygun = false
+            }
+        }
+
+        if (tipUygun && botUygun) {
+            row.classList.remove('filtered-out')
+        } else {
+            row.classList.add('filtered-out')
+        }
+    })
+}
+
 const terminalFilterBtns = document.querySelectorAll('.filter-btn')
 terminalFilterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         terminalFilterBtns.forEach(b => b.classList.remove('active'))
         btn.classList.add('active')
         aktifTerminalFiltre = btn.dataset.filter
-
-        const rows = elTerminalLog.querySelectorAll('.terminal-row')
-        rows.forEach(row => {
-            if (aktifTerminalFiltre === 'all') {
-                row.classList.remove('filtered-out')
-            } else {
-                const matchMap = {
-                    'error': 'row-error',
-                    'warn': 'row-warn',
-                    'success': 'row-success'
-                }
-                const targetClass = matchMap[aktifTerminalFiltre]
-                if (targetClass && row.classList.contains(targetClass)) {
-                    row.classList.remove('filtered-out')
-                } else if (targetClass) {
-                    row.classList.add('filtered-out')
-                } else {
-                    row.classList.remove('filtered-out')
-                }
-            }
-        })
+        uygulaTerminalFiltre()
     })
 })
+
+if (elSelectTerminalBotFilter) {
+    elSelectTerminalBotFilter.addEventListener('change', () => {
+        uygulaTerminalFiltre()
+    })
+}
 
 // ===================================================
 // 2. TERMINAL LOG FORMATTER & RENDERER
@@ -740,9 +910,12 @@ function formatZaman(date = new Date()) {
     return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
 
-function ekleTerminalSatiri(mesaj, badgeClass = 'badge-info', badgeText = 'INFO', rowClass = '') {
+function ekleTerminalSatiri(mesaj, badgeClass = 'badge-info', badgeText = 'INFO', rowClass = '', profileId = null, profileName = null) {
     const row = document.createElement('div')
     row.className = `terminal-row ${rowClass}`
+    if (profileId) {
+        row.dataset.botId = profileId
+    }
 
     const timeSpan = document.createElement('span')
     timeSpan.className = 'log-time'
@@ -752,21 +925,39 @@ function ekleTerminalSatiri(mesaj, badgeClass = 'badge-info', badgeText = 'INFO'
     badgeSpan.className = `log-badge ${badgeClass}`
     badgeSpan.textContent = badgeText
 
+    row.appendChild(timeSpan)
+    row.appendChild(badgeSpan)
+
+    if (profileName) {
+        const botSpan = document.createElement('span')
+        botSpan.className = 'badge-bot-tag'
+        botSpan.textContent = `[${profileName}]`
+        row.appendChild(botSpan)
+    }
+
     const msgSpan = document.createElement('span')
     msgSpan.className = 'log-msg'
     msgSpan.textContent = mesaj
 
-    row.appendChild(timeSpan)
-    row.appendChild(badgeSpan)
     row.appendChild(msgSpan)
 
-    // Apply current filter
+    // Aktif filtre kontrolü
+    const seciliBotId = elSelectTerminalBotFilter ? elSelectTerminalBotFilter.value : 'all'
+    let gizle = false
+
     if (aktifTerminalFiltre !== 'all') {
         const matchMap = { 'error': 'row-error', 'warn': 'row-warn', 'success': 'row-success' }
         const targetClass = matchMap[aktifTerminalFiltre]
         if (targetClass && !row.classList.contains(targetClass)) {
-            row.classList.add('filtered-out')
+            gizle = true
         }
+    }
+    if (seciliBotId !== 'all' && profileId && profileId !== seciliBotId) {
+        gizle = true
+    }
+
+    if (gizle) {
+        row.classList.add('filtered-out')
     }
 
     elTerminalLog.appendChild(row)
@@ -780,10 +971,20 @@ function ekleTerminalSatiri(mesaj, badgeClass = 'badge-info', badgeText = 'INFO'
     }
 }
 
-// Bot Log Olayı
-window.electronAPI.onLog((mesaj) => {
-    if (!mesaj) return
-    const text = String(mesaj).trim()
+// Bot Log Olayı (Multi-Bot Payload Desteği)
+window.electronAPI.onLog((logPayload) => {
+    if (!logPayload) return
+    let text = ''
+    let profileId = null
+    let profileName = null
+
+    if (typeof logPayload === 'object' && logPayload !== null) {
+        text = String(logPayload.message || '').trim()
+        profileId = logPayload.profileId || null
+        profileName = logPayload.profileName || null
+    } else {
+        text = String(logPayload).trim()
+    }
     if (!text) return
 
     const lower = text.toLowerCase()
@@ -826,7 +1027,7 @@ window.electronAPI.onLog((mesaj) => {
 
     // Başlıktaki [SUNUCU] veya [BİLGİ] etiketlerini temizleyerek sun
     const temizMesaj = text.replace(/^\[(SUNUCU|DURUM|İŞLEM|BİLGİ|UYARI|HATA|BAŞARILI|SİSTEM)\]\s*/i, '')
-    ekleTerminalSatiri(temizMesaj, badgeClass, badgeText, rowClass)
+    ekleTerminalSatiri(temizMesaj, badgeClass, badgeText, rowClass, profileId, profileName)
 })
 
 // ===================================================
@@ -1677,22 +1878,29 @@ function syncDurum(durum) {
 
     oncekiAdaDurumu = calisiyor ? (durum.adada ?? false) : null
 
-    if (durum.minyonlar && Object.keys(durum.minyonlar).length > 0) {
-        guncelMinyonlar = durum.minyonlar
-        renderMinyonlar(durum.minyonlar)
+    const topbarProf = document.getElementById('topbarProfileName')
+    if (durum.activeProfile) {
+        if (topbarProf) topbarProf.textContent = durum.activeProfile.name || 'Varsayılan Bot'
+        if (durum.activeProfile.username) elBotUsername.textContent = durum.activeProfile.username
+        if (durum.activeProfile.server) elServerInfo.textContent = durum.activeProfile.server
     }
 
-    if (durum.kovanlar && Object.keys(durum.kovanlar).length > 0) {
-        guncelKovanlar = durum.kovanlar
-        renderKovanlar(durum.kovanlar)
+    if (durum.minyonlar !== undefined) {
+        guncelMinyonlar = durum.minyonlar || {}
+        renderMinyonlar(guncelMinyonlar)
     }
 
-    if (durum.envanter) {
-        guncelEnvanter = durum.envanter
-        renderEnvanter(durum.envanter)
+    if (durum.kovanlar !== undefined) {
+        guncelKovanlar = durum.kovanlar || {}
+        renderKovanlar(guncelKovanlar)
     }
 
-    if (durum.hasat) {
+    if (durum.envanter !== undefined) {
+        guncelEnvanter = durum.envanter || { doluSlot: 0, toplamSlot: 36, toplamEsya: 0, esyalar: [], zirhlar: {}, sonGuncelleme: null }
+        renderEnvanter(guncelEnvanter)
+    }
+
+    if (durum.hasat !== undefined) {
         guncelHasat = durum.hasat
         renderHasat(durum.hasat)
     }
@@ -2246,8 +2454,10 @@ function initProfessionalExtension() {
         if (!elProfilesListGrid) return
         try {
             const profiles = await api.profiles.list()
+            const botList = await api.bot.list()
             const activeStatus = await api.bot.status()
             const activeId = activeStatus.activeProfile ? activeStatus.activeProfile.id : null
+            const botMap = new Map((botList || []).map(b => [b.id, b]))
 
             if (elProfilesCountBadge) elProfilesCountBadge.textContent = profiles.length
             elProfilesListGrid.innerHTML = ''
@@ -2264,13 +2474,20 @@ function initProfessionalExtension() {
             }
 
             profiles.forEach(p => {
-                const isActive = p.id === activeId
-                const card = document.createElement('div')
-                card.className = `profile-card ${isActive ? 'active-profile' : ''}`
+                const bInfo = botMap.get(p.id)
+                const isRunning = bInfo ? bInfo.isRunning : false
+                const isSelected = p.id === activeId
 
-                const statusTag = isActive
-                    ? `<span class="badge badge-success">● Aktif Profil</span>`
-                    : `<span class="badge" style="background: rgba(255,255,255,0.05); color: var(--text-dim);">Boşta</span>`
+                const card = document.createElement('div')
+                card.className = `profile-card ${isSelected ? 'active-profile' : ''} ${isRunning ? 'running-profile' : ''}`
+
+                const statusTag = isRunning
+                    ? `<span class="badge badge-success">● Çalışıyor</span>`
+                    : `<span class="badge" style="background: rgba(255,255,255,0.05); color: var(--text-dim);">Durduruldu</span>`
+
+                const selectedTag = isSelected
+                    ? `<span class="badge badge-primary">👁️ Seçili</span>`
+                    : ''
 
                 const lockTag = p.hasPassword
                     ? `<span class="badge badge-primary" title="Şifre donanım seviyesinde şifreli">🔒 Korumalı</span>`
@@ -2286,8 +2503,9 @@ function initProfessionalExtension() {
                             <div class="profile-card-title">${p.name}</div>
                             <div class="profile-card-server">${p.username}@${p.server}</div>
                         </div>
-                        <div style="display: flex; gap: 4px;">
+                        <div style="display: flex; gap: 4px; align-items: center;">
                             ${statusTag}
+                            ${selectedTag}
                         </div>
                     </div>
 
@@ -2299,17 +2517,26 @@ function initProfessionalExtension() {
                     </div>
 
                     <div class="profile-card-actions">
-                        ${!isActive ? `<button class="btn btn-success btn-sm btn-prof-launch" data-id="${p.id}">Başlat / Seç</button>` : `<button class="btn btn-primary btn-sm btn-prof-continue" data-id="${p.id}">Panele Geç (Aktif)</button>`}
+                        ${isRunning
+                            ? `<button class="btn btn-danger btn-sm btn-prof-stop" data-id="${p.id}">⏹️ Durdur</button>`
+                            : `<button class="btn btn-success btn-sm btn-prof-launch" data-id="${p.id}">▶️ Başlat</button>`
+                        }
+                        <button class="btn ${isSelected ? 'btn-primary' : 'btn-secondary'} btn-sm btn-prof-select" data-id="${p.id}">
+                            ${isSelected ? 'Panele Geç (Aktif)' : 'Seç & İzle'}
+                        </button>
                         <button class="btn btn-secondary btn-sm btn-prof-edit" data-id="${p.id}">Düzenle</button>
                         <button class="btn btn-secondary btn-sm btn-prof-duplicate" data-id="${p.id}">Kopyala</button>
-                        ${!isActive ? `<button class="btn btn-danger btn-sm btn-prof-delete" data-id="${p.id}">Sil</button>` : ''}
+                        ${!isRunning ? `<button class="btn btn-danger btn-sm btn-prof-delete" data-id="${p.id}">Sil</button>` : ''}
                     </div>
                 `
 
-                card.onclick = (e) => {
+                card.onclick = async (e) => {
                     if (e.target.closest('button') || e.target.closest('input')) return
-                    if (isActive) {
+                    try {
+                        await api.bot.select(p.id)
                         closeModal(elProfilesModal)
+                    } catch (err) {
+                        console.error(err)
                     }
                 }
 
@@ -2317,21 +2544,50 @@ function initProfessionalExtension() {
             })
 
             // Buton Olayları Bağlama
-            elProfilesListGrid.querySelectorAll('.btn-prof-continue').forEach(b => {
-                b.onclick = () => closeModal(elProfilesModal)
+            elProfilesListGrid.querySelectorAll('.btn-prof-select').forEach(b => {
+                b.onclick = async (e) => {
+                    e.stopPropagation()
+                    const id = b.getAttribute('data-id')
+                    try {
+                        await api.bot.select(id)
+                        closeModal(elProfilesModal)
+                    } catch (err) {
+                        showToast(`Seçim hatası: ${err.message}`, 'danger')
+                    }
+                }
             })
 
             elProfilesListGrid.querySelectorAll('.btn-prof-launch').forEach(b => {
-                b.onclick = async () => {
+                b.onclick = async (e) => {
+                    e.stopPropagation()
                     const id = b.getAttribute('data-id')
                     try {
                         b.disabled = true
                         b.textContent = 'Başlatılıyor...'
-                        await api.profiles.launch(id)
-                        showToast('Profil başarıyla seçildi ve bot başlatıldı!', 'success')
-                        closeModal(elProfilesModal)
+                        await api.bot.start(id)
+                        await api.bot.select(id)
+                        showToast('Bot başlatıldı ve paneli aktif edildi!', 'success')
+                        loadProfilesList()
                     } catch (err) {
                         showToast(`Başlatma hatası: ${err.message}`, 'danger')
+                        loadProfilesList()
+                    }
+                }
+            })
+
+            elProfilesListGrid.querySelectorAll('.btn-prof-stop').forEach(b => {
+                b.onclick = async (e) => {
+                    e.stopPropagation()
+                    const id = b.getAttribute('data-id')
+                    try {
+                        b.disabled = true
+                        b.textContent = 'Durduruluyor...'
+                        await api.bot.stop(id)
+                        showToast('Bot durduruldu.', 'warning')
+                        loadProfilesList()
+                    } catch (err) {
+                        showToast(`Durdurma hatası: ${err.message}`, 'danger')
+                        loadProfilesList()
                     }
                 }
             })
