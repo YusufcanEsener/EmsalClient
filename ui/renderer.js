@@ -48,6 +48,7 @@ const elBtnStopAllBots = document.getElementById('btnStopAllBots')
 const elBtnModalStartAll = document.getElementById('btnModalStartAll')
 const elBtnModalStopAll = document.getElementById('btnModalStopAll')
 const elSelectTerminalBotFilter = document.getElementById('selectTerminalBotFilter')
+let aktifSeciliBotId = null
 
 const elBotDurumText = document.getElementById('botDurumText')
 const elBotStatusDot = document.getElementById('botStatusDot')
@@ -783,30 +784,37 @@ async function gonderTerminalMesaj() {
     elInputTerminalChat.value = ''
     elInputTerminalChat.focus()
 
-    // Bot aktif mi kontrolü
-    if (!guncelBotCalisiyor) {
-        showToast('Bot oyunda değil! Mesaj göndermek için önce botu başlatın.', 'warning', 3500)
-        ekleTerminalSatiri(`Bot çevrimdışı, mesaj gönderilemedi: "${text}"`, 'badge-warn', 'UYARI', 'row-warn')
-        return
+    // Hedef bot ID'sini güvenle al
+    let seciliBotId = null
+    try {
+        if (elSelectTerminalBotFilter && elSelectTerminalBotFilter.value && elSelectTerminalBotFilter.value !== 'all') {
+            seciliBotId = elSelectTerminalBotFilter.value
+        } else if (typeof aktifSeciliBotId !== 'undefined' && aktifSeciliBotId) {
+            seciliBotId = aktifSeciliBotId
+        }
+    } catch (e) {
+        seciliBotId = null
     }
-
-    // Seçili bot ID'sini al
-    const seciliBotId = elSelectTerminalBotFilter && elSelectTerminalBotFilter.value !== 'all'
-        ? elSelectTerminalBotFilter.value
-        : (aktifSeciliBotId || null)
-
-    // Terminalde kullanıcı mesajını şık bir satır olarak anında göster
-    ekleTerminalSatiri(`Giden: ${text}`, 'badge-chat-sent', 'GÖNDERİLDİ', 'row-chat-sent', seciliBotId)
 
     try {
         const sendFn = window.electronAPI?.mesajGonder || window.api?.bot?.mesajGonder
-        if (sendFn) {
-            const sonuc = await sendFn(text, seciliBotId)
-            if (!sonuc || !sonuc.basarili) {
-                ekleTerminalSatiri(`Mesaj iletilemedi: ${sonuc?.mesaj || 'Bilinmeyen hata'}`, 'badge-err', 'HATA', 'row-error', seciliBotId)
-            }
+        if (!sendFn) {
+            showToast('Mesaj API fonksiyonu bulunamadı!', 'error', 3000)
+            ekleTerminalSatiri('Mesaj gönderme API hazır değil.', 'badge-err', 'HATA', 'row-error')
+            return
+        }
+
+        const sonuc = await sendFn(text, seciliBotId)
+        if (sonuc && sonuc.basarili) {
+            ekleTerminalSatiri(`SİZ » ${text}`, 'badge-chat-sent', 'GÖNDERİLDİ', 'row-chat-sent', seciliBotId)
+        } else {
+            const hataMesaj = sonuc?.mesaj || 'Bot oyunda değil veya mesaj gönderilemedi.'
+            showToast(hataMesaj, 'warning', 3500)
+            ekleTerminalSatiri(`[İLETİLEMEDİ]: "${text}" (${hataMesaj})`, 'badge-warn', 'UYARI', 'row-warn', seciliBotId)
         }
     } catch (err) {
+        console.error('Mesaj gönderme hatası:', err)
+        showToast(`Mesaj hatası: ${err.message}`, 'error', 3500)
         ekleTerminalSatiri(`Mesaj hatası: ${err.message}`, 'badge-err', 'HATA', 'row-error', seciliBotId)
     }
 }
@@ -1899,6 +1907,11 @@ let guncelBotCalisiyor = false
 function syncDurum(durum) {
     if (!durum) return
     guncelBotCalisiyor = Boolean(durum.calisiyor)
+    if (durum.profileId) {
+        aktifSeciliBotId = durum.profileId
+    } else if (durum.activeProfile?.id) {
+        aktifSeciliBotId = durum.activeProfile.id
+    }
 
     if (durum.botAdi) elBotUsername.textContent = durum.botAdi
     if (durum.sunucu) elServerInfo.textContent = durum.sunucu

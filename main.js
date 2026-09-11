@@ -2979,9 +2979,9 @@ const botKontrol = {
         return null
     },
     mesajGonder: (mesaj) => {
-        if (!bot || !bot.entity) {
-            console.log('[UYARI] Bot oyunda değil, mesaj gönderilemedi.')
-            return { basarili: false, mesaj: 'Bot henüz oyunda değil.' }
+        if (!bot || !bot._client) {
+            console.log('[UYARI] Bot sunucuya bağlı değil, mesaj gönderilemedi.')
+            return { basarili: false, mesaj: 'Bot henüz sunucuya bağlı değil.' }
         }
         if (!mesaj || typeof mesaj !== 'string' || !mesaj.trim()) {
             return { basarili: false, mesaj: 'Boş mesaj gönderilemez.' }
