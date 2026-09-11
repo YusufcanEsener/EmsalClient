@@ -2978,6 +2978,24 @@ const botKontrol = {
         }
         return null
     },
+    mesajGonder: (mesaj) => {
+        if (!bot || !bot.entity) {
+            console.log('[UYARI] Bot oyunda değil, mesaj gönderilemedi.')
+            return { basarili: false, mesaj: 'Bot henüz oyunda değil.' }
+        }
+        if (!mesaj || typeof mesaj !== 'string' || !mesaj.trim()) {
+            return { basarili: false, mesaj: 'Boş mesaj gönderilemez.' }
+        }
+        const temizMesaj = mesaj.trim()
+        try {
+            bot.chat(temizMesaj)
+            console.log(`[MESAJ] ${temizMesaj}`)
+            return { basarili: true, gonderilen: temizMesaj }
+        } catch (err) {
+            console.error('[HATA] Mesaj gönderilirken hata oluştu:', err.message)
+            return { basarili: false, mesaj: err.message }
+        }
+    },
     cantaDoluMu: (minBosSlot) => cantaDoluMu(minBosSlot),
     tasmaKorumasiKontrolVeBosalt: (kaynak) => tasmaKorumasiKontrolVeBosalt(kaynak)
 }

@@ -1717,6 +1717,106 @@ input:checked + .slider-sm:before {
     color: #93c5fd;
 }
 
+/* Terminal Input & Chat Bar */
+.terminal-input-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: rgba(0, 0, 0, 0.28);
+    border-top: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+}
+
+.terminal-prompt-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    flex-shrink: 0;
+    opacity: 0.85;
+}
+
+.terminal-chat-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-main);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    padding: 4px 9px;
+    outline: none;
+    transition: all 0.15s ease;
+    height: 28px;
+}
+
+.terminal-chat-input:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-subtle);
+}
+
+.terminal-chat-input::placeholder {
+    color: var(--text-dim);
+    font-family: var(--font-ui);
+    font-size: 11px;
+}
+
+.terminal-send-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--primary);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-sm);
+    padding: 0 10px;
+    height: 28px;
+    font-family: var(--font-ui);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.terminal-send-btn:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 0 8px rgba(88, 101, 242, 0.4);
+}
+
+.terminal-send-btn:active {
+    transform: scale(0.97);
+}
+
+.terminal-send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Chat badges in terminal log */
+.badge-chat {
+    background: rgba(99, 102, 241, 0.18);
+    color: #a5b4fc;
+}
+
+.row-chat .log-msg {
+    color: #e0e7ff;
+}
+
+.badge-chat-sent {
+    background: rgba(14, 165, 233, 0.2);
+    color: #38bdf8;
+    border: 1px solid rgba(14, 165, 233, 0.35);
+}
+
+.row-chat-sent .log-msg {
+    color: #e0f2fe;
+    font-weight: 500;
+}
+
 /* ===================================================
    6. DISCONNECT OVERLAY
    =================================================== */

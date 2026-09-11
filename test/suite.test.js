@@ -262,6 +262,23 @@ it('Should strictly classify player chat messages containing discord or server k
     assert(isPlayerChat(playerMsg3))
 })
 
+// 10. CHAT / MESSAGE SENDING VERIFICATION
+console.log('\n--- 10. Chat & Terminal Message Sending ---')
+it('Should expose and handle mesajGonder gracefully when offline or invalid', () => {
+    assert(typeof botMain.mesajGonder === 'function')
+    assert(typeof botManager.mesajGonder === 'function')
+
+    const resEmpty = botMain.mesajGonder('')
+    assert.strictEqual(resEmpty.basarili, false)
+
+    const resOffline = botMain.mesajGonder('/is')
+    assert.strictEqual(resOffline.basarili, false)
+    assert(resOffline.mesaj.includes('değil'))
+
+    const resMgrOffline = botManager.mesajGonder('/is')
+    assert.strictEqual(resMgrOffline.basarili, false)
+})
+
 console.log('\n====================================================')
 console.log(`   TEST RESULTS: ${passCount} PASSED, ${failCount} FAILED   `)
 console.log('====================================================\n')

@@ -276,6 +276,7 @@ ipcMain.handle('bot:oto-bal-degistir', (e, durum, profileId) => botManager.otoBa
 ipcMain.handle('bot:sunucu-kontrol-et', (e, profileId) => botManager.sunucuKontrolEt(profileId))
 ipcMain.handle('bot:hasat-al', (e, profileId) => botManager.hasatAnalitigiAl(profileId))
 ipcMain.handle('bot:hasat-sifirla', (e, sadeceOturum, profileId) => botManager.hasatAnalitigiSifirla(sadeceOturum, profileId))
+ipcMain.handle('bot:mesaj-gonder', (e, mesaj, profileId) => botManager.mesajGonder(mesaj, profileId))
 
 // ==========================================
 // IPC HANDLERS - AYARLAR (SETTINGS) & LOGLAR

@@ -72,6 +72,7 @@ const api = {
         sunucuKontrolEt: (profileId) => ipcRenderer.invoke('bot:sunucu-kontrol-et', profileId),
         hasatAl: (profileId) => ipcRenderer.invoke('bot:hasat-al', profileId),
         hasatSifirla: (sadeceOturum, profileId) => ipcRenderer.invoke('bot:hasat-sifirla', sadeceOturum, profileId),
+        mesajGonder: (mesaj, profileId) => ipcRenderer.invoke('bot:mesaj-gonder', mesaj, profileId),
 
         onLog: (callback) => {
             ipcRenderer.removeAllListeners('bot:log')
@@ -160,6 +161,7 @@ const legacyElectronAPI = {
     sunucuKontrolEt: () => api.bot.sunucuKontrolEt(),
     hasatAl: () => api.bot.hasatAl(),
     hasatSifirla: (sadeceOturum) => api.bot.hasatSifirla(sadeceOturum),
+    mesajGonder: (mesaj, profileId) => api.bot.mesajGonder(mesaj, profileId),
 
     windowMinimize: () => api.app.minimize(),
     windowMaximize: () => api.app.maximize(),

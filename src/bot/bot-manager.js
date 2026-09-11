@@ -443,6 +443,14 @@ class BotManager extends EventEmitter {
         const { instance } = this._getTargetInstance(profileId)
         return instance.hasatAnalitigiSifirla ? instance.hasatAnalitigiSifirla(sadeceOturum) : null
     }
+
+    mesajGonder(mesaj, profileId = null) {
+        const { instance } = this._getTargetInstance(profileId)
+        if (typeof instance.mesajGonder === 'function') {
+            return instance.mesajGonder(mesaj)
+        }
+        return { basarili: false, mesaj: 'Bu bot mesaj göndermeyi desteklemiyor.' }
+    }
 }
 
 module.exports = new BotManager()

@@ -115,6 +115,8 @@ const elSonGuncelleme = document.getElementById('sonGuncellemeText')
 const elTerminalLog = document.getElementById('terminalLog')
 const elChkAutoScroll = document.getElementById('chkAutoScroll')
 const elBtnTemizle = document.getElementById('btnTerminalTemizle')
+const elInputTerminalChat = document.getElementById('inputTerminalChat')
+const elBtnTerminalSend = document.getElementById('btnTerminalSend')
 
 const elSelectSirala = document.getElementById('selectSirala')
 const elToplamToplanan = document.getElementById('toplamToplanan')
@@ -760,6 +762,95 @@ elBtnTemizle.addEventListener('click', () => {
     ekleTerminalSatiri('Terminal temizlendi.', 'badge-system', 'SYS')
 })
 
+// ===================================================
+// TERMINAL CHAT / MESAJ GÖNDERME SİSTEMİ
+// ===================================================
+const chatHistory = []
+let chatHistoryIndex = -1
+
+async function gonderTerminalMesaj() {
+    if (!elInputTerminalChat) return
+    const text = elInputTerminalChat.value.trim()
+    if (!text) return
+
+    // Komut geçmişine ekle (en fazla 50 komut sakla)
+    if (chatHistory.length === 0 || chatHistory[chatHistory.length - 1] !== text) {
+        chatHistory.push(text)
+        if (chatHistory.length > 50) chatHistory.shift()
+    }
+    chatHistoryIndex = chatHistory.length
+
+    elInputTerminalChat.value = ''
+    elInputTerminalChat.focus()
+
+    // Bot aktif mi kontrolü
+    if (!guncelBotCalisiyor) {
+        showToast('Bot oyunda değil! Mesaj göndermek için önce botu başlatın.', 'warning', 3500)
+        ekleTerminalSatiri(`Bot çevrimdışı, mesaj gönderilemedi: "${text}"`, 'badge-warn', 'UYARI', 'row-warn')
+        return
+    }
+
+    // Seçili bot ID'sini al
+    const seciliBotId = elSelectTerminalBotFilter && elSelectTerminalBotFilter.value !== 'all'
+        ? elSelectTerminalBotFilter.value
+        : (aktifSeciliBotId || null)
+
+    // Terminalde kullanıcı mesajını şık bir satır olarak anında göster
+    ekleTerminalSatiri(`Giden: ${text}`, 'badge-chat-sent', 'GÖNDERİLDİ', 'row-chat-sent', seciliBotId)
+
+    try {
+        const sendFn = window.electronAPI?.mesajGonder || window.api?.bot?.mesajGonder
+        if (sendFn) {
+            const sonuc = await sendFn(text, seciliBotId)
+            if (!sonuc || !sonuc.basarili) {
+                ekleTerminalSatiri(`Mesaj iletilemedi: ${sonuc?.mesaj || 'Bilinmeyen hata'}`, 'badge-err', 'HATA', 'row-error', seciliBotId)
+            }
+        }
+    } catch (err) {
+        ekleTerminalSatiri(`Mesaj hatası: ${err.message}`, 'badge-err', 'HATA', 'row-error', seciliBotId)
+    }
+}
+
+if (elBtnTerminalSend) {
+    elBtnTerminalSend.addEventListener('click', gonderTerminalMesaj)
+}
+
+if (elInputTerminalChat) {
+    elInputTerminalChat.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault()
+            gonderTerminalMesaj()
+        } else if (e.key === 'ArrowUp') {
+            if (chatHistory.length > 0) {
+                e.preventDefault()
+                if (chatHistoryIndex > 0) {
+                    chatHistoryIndex--
+                } else if (chatHistoryIndex === -1) {
+                    chatHistoryIndex = chatHistory.length - 1
+                }
+                elInputTerminalChat.value = chatHistory[chatHistoryIndex] || ''
+                setTimeout(() => {
+                    elInputTerminalChat.selectionStart = elInputTerminalChat.selectionEnd = elInputTerminalChat.value.length
+                }, 0)
+            }
+        } else if (e.key === 'ArrowDown') {
+            if (chatHistory.length > 0) {
+                e.preventDefault()
+                if (chatHistoryIndex < chatHistory.length - 1) {
+                    chatHistoryIndex++
+                    elInputTerminalChat.value = chatHistory[chatHistoryIndex] || ''
+                } else {
+                    chatHistoryIndex = chatHistory.length
+                    elInputTerminalChat.value = ''
+                }
+                setTimeout(() => {
+                    elInputTerminalChat.selectionStart = elInputTerminalChat.selectionEnd = elInputTerminalChat.value.length
+                }, 0)
+            }
+        }
+    })
+}
+
 // Tab Değiştirme (Minyonlar vs. Kovanlar vs. Envanter vs. Hasat)
 function switchTab(tab) {
     aktifTab = tab
@@ -1044,10 +1135,14 @@ window.electronAPI.onLog((logPayload) => {
         badgeClass = 'badge-system'
         badgeText = 'SYS'
         rowClass = 'row-system'
+    } else if (lower.includes('[mesaj]') || lower.includes('[sohbet]')) {
+        badgeClass = 'badge-chat'
+        badgeText = 'CHAT'
+        rowClass = 'row-chat'
     }
 
-    // Başlıktaki [SUNUCU] veya [BİLGİ] etiketlerini temizleyerek sun
-    const temizMesaj = text.replace(/^\[(SUNUCU|DURUM|İŞLEM|BİLGİ|UYARI|HATA|BAŞARILI|SİSTEM)\]\s*/i, '')
+    // Başlıktaki etiketleri temizleyerek sun
+    const temizMesaj = text.replace(/^\[(SUNUCU|DURUM|İŞLEM|BİLGİ|UYARI|HATA|BAŞARILI|SİSTEM|MESAJ|SOHBET)\]\s*/i, '')
     ekleTerminalSatiri(temizMesaj, badgeClass, badgeText, rowClass, profileId, profileName)
 })
 
@@ -1799,9 +1894,11 @@ if (window.electronAPI && typeof window.electronAPI.onTasmaKorumasi === 'functio
 // ===================================================
 
 let oncekiAdaDurumu = null
+let guncelBotCalisiyor = false
 
 function syncDurum(durum) {
     if (!durum) return
+    guncelBotCalisiyor = Boolean(durum.calisiyor)
 
     if (durum.botAdi) elBotUsername.textContent = durum.botAdi
     if (durum.sunucu) elServerInfo.textContent = durum.sunucu
