@@ -478,31 +478,178 @@ body {
 }
 
 /* ===================================================
-   2. ACTION TOOLBAR (COMPACT SINGLE ROW)
-   ================================================== */
-.action-toolbar {
+   2. APP WORKSPACE & COLLAPSIBLE LEFT SIDEBAR
+   =================================================== */
+.app-workspace {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: row;
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    gap: 6px;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.app-sidebar {
+    width: 185px;
+    min-width: 185px;
     background: var(--bg-surface);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
-    padding: 4px 10px;
-    height: 42px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
-    overflow-x: auto;
-    gap: 8px;
+    z-index: 10;
 }
 
-.action-toolbar::-webkit-scrollbar {
-    height: 3px;
+.app-sidebar.collapsed {
+    width: 52px;
+    min-width: 52px;
 }
 
-.toolbar-actions {
+.sidebar-header {
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: space-between;
+    padding: 6px 8px 6px 12px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: rgba(0, 0, 0, 0.15);
+    height: 36px;
     flex-shrink: 0;
+}
+
+.sidebar-title {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    user-select: none;
+}
+
+.app-sidebar.collapsed .sidebar-title {
+    display: none;
+}
+
+.sidebar-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: var(--radius-xs);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.sidebar-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+    border-color: var(--border-strong);
+}
+
+.sidebar-toggle-btn svg {
+    transition: transform 0.2s ease;
+}
+
+.app-sidebar.collapsed .sidebar-toggle-btn svg {
+    transform: rotate(180deg);
+}
+
+.app-sidebar.collapsed .sidebar-header {
+    justify-content: center;
+    padding: 6px;
+}
+
+.sidebar-scrollable {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 8px 6px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+}
+
+.sidebar-scrollable::-webkit-scrollbar {
+    width: 3px;
+}
+
+.sidebar-scrollable::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.sidebar-section {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.sidebar-section-title {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--text-dim);
+    padding: 2px 6px 3px 6px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.app-sidebar.collapsed .sidebar-section-title {
+    display: none;
+}
+
+.sidebar-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 9px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-ui);
+    font-size: 11.5px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 31px;
+    box-sizing: border-box;
+}
+
+.sidebar-btn svg {
+    flex-shrink: 0;
+}
+
+.sidebar-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.app-sidebar.collapsed .sidebar-btn {
+    justify-content: center;
+    padding: 6px 0;
+    width: 100%;
+}
+
+.app-sidebar.collapsed .sidebar-label {
+    display: none;
 }
 
 /* Button System */
@@ -642,6 +789,18 @@ body {
     border-color: rgba(245, 158, 11, 0.55);
     color: #fde68a;
     box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+}
+
+.btn-honey-outline {
+    background: transparent;
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.btn-honey-outline:hover:not(:disabled) {
+    background: rgba(245, 158, 11, 0.16);
+    border-color: rgba(245, 158, 11, 0.55);
+    color: #fde68a;
 }
 
 .btn-sm {
@@ -819,6 +978,7 @@ input:checked + .slider-sm:before {
     gap: 6px;
     flex: 1;
     min-height: 0; /* Important for inner flex/scroll */
+    min-width: 0;
 }
 
 /* Common Pane Styling */
@@ -835,11 +995,21 @@ input:checked + .slider-sm:before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 7px 12px;
+    padding: 5px 10px;
     border-bottom: 1px solid var(--border-subtle);
     background: rgba(0, 0, 0, 0.15);
-    height: 34px;
+    min-height: 38px;
+    height: auto;
     flex-shrink: 0;
+    gap: 8px;
+}
+
+.pane-filters {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
 }
 
 .pane-title-group {
@@ -2166,8 +2336,8 @@ input:checked + .slider-sm:before {
 
 /* Launcher Modal Box & Components */
 .launcher-modal-box {
-    width: 880px !important;
-    max-width: 95vw !important;
+    width: 950px !important;
+    max-width: 96vw !important;
     padding: 0 !important;
     overflow: hidden !important;
     background: #0f172a !important;
@@ -2182,12 +2352,14 @@ input:checked + .slider-sm:before {
     padding: 16px 22px;
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.85));
     border-bottom: 1px solid var(--border-subtle);
+    gap: 16px;
 }
 
 .launcher-brand-info {
     display: flex;
     align-items: center;
     gap: 14px;
+    flex-shrink: 0;
 }
 
 .launcher-logo {
@@ -2225,6 +2397,7 @@ input:checked + .slider-sm:before {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0;
 }
 
 .launcher-update-alert {

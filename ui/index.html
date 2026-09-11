@@ -150,224 +150,174 @@
             </div>
         </section>
 
-        <!-- 2. ACTION TOOLBAR (COMPACT SINGLE ROW) -->
-        <section class="action-toolbar">
-            <div class="toolbar-actions">
-                <!-- Bot Yaşam Döngüsü Kontrolleri -->
-                <button class="btn btn-success" id="btnBotBaslat" title="Botu Başlat (Ctrl+S)">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                    </svg>
-                    <span>Başlat</span>
-                </button>
-
-                <button class="btn btn-danger" id="btnBotDurdur" title="Botu Durdur (Ctrl+X)" disabled>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                        <rect x="4" y="4" width="16" height="16" rx="2"></rect>
-                    </svg>
-                    <span>Durdur</span>
-                </button>
-
-                <div class="toolbar-separator"></div>
-
-                <button class="btn btn-primary" id="btnTara" title="Minyonları Tara (Ctrl+R)" disabled>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.3-4.3"></path>
-                    </svg>
-                    <span>Minyonları Tara</span>
-                </button>
-
-                <button class="btn btn-honey" id="btnKovanTara" title="Kovanları Tara (Ctrl+K)" disabled>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
-                        <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                    <span>Kovanları Tara</span>
-                </button>
-
-                <button class="btn btn-honey-toggle active" id="btnToggleOtoBal" title="Otomatik Bal Toplama: %80 dolan kovanları otomatik toplayıp sandığa koyar">
-                    <span class="honey-pulse-dot"></span>
-                    <span>🍯 Oto Bal: <strong class="oto-bal-status">AÇIK</strong></span>
-                </button>
-
-                <button class="btn btn-honey-outline" id="btnKovanTopla" title="Dolan (%80+) kovanların balını topla" disabled>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
-                        <path d="m3.3 7 8.7 5 8.7-5"></path>
-                    </svg>
-                    <span>Balları Topla</span>
-                </button>
-
-                <button class="btn btn-secondary" id="btnTopla" title="Minyonları Topla (Ctrl+T)" disabled style="display: none;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
-                        <path d="m3.3 7 8.7 5 8.7-5"></path>
-                        <path d="M12 22V12"></path>
-                    </svg>
-                    <span>Tümünü Topla</span>
-                </button>
-
-                <!-- YENİ: Envanteri Boşalt Butonu -->
-                <button class="btn btn-primary" id="btnEnvanterBosalt" title="Çantadaki tüm eşyaları hedef sandığa aktarır" disabled>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
-                        <polyline points="12 12 12 18 15 15"></polyline>
-                        <line x1="12" y1="18" x2="9" y2="15"></line>
-                    </svg>
-                    <span>Envanteri Boşalt</span>
-                </button>
-
-                <button class="btn btn-secondary" id="btnSandik" disabled>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path>
-                        <circle cx="12" cy="10" r="3"></circle>
-                    </svg>
-                    <span>Sandığı Ayarla</span>
-                </button>
-            </div>
-
-            <div class="toolbar-controls">
-                <!-- İstatistik Şeridi -->
-                <div class="stat-chip" title="Bu oturumda toplanan toplam eşya">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
-                        <path d="M3 6h18"></path>
-                        <path d="M16 10a4 4 0 0 1-8 0"></path>
-                    </svg>
-                    <span id="toplamToplanan">0</span>
+        <!-- 2. MAIN APP WORKSPACE WITH COLLAPSIBLE SIDEBAR -->
+        <div class="app-workspace">
+            <!-- COLLAPSIBLE LEFT SIDEBAR -->
+            <aside class="app-sidebar" id="appSidebar">
+                <div class="sidebar-header">
+                    <span class="sidebar-title">KONTROLLER</span>
+                    <button class="sidebar-toggle-btn" id="btnToggleSidebar" title="Menüyü Daralt / Genişlet">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" id="iconSidebarToggle"><path d="M15 18l-6-6 6-6"/></svg>
+                    </button>
                 </div>
 
-                <div class="stat-chip" title="Ortalama doluluk yüzdesi">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"></path>
-                    </svg>
-                    <span id="ortDoluluk">%0</span>
-                </div>
+                <div class="sidebar-scrollable">
+                    <!-- BOT KONTROLÜ -->
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-title">BOT KONTROLÜ</div>
+                        <button class="sidebar-btn btn-success" id="btnBotBaslat" title="Botu Başlat (Ctrl+S)">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            <span class="sidebar-label">Başlat</span>
+                        </button>
+                        <button class="sidebar-btn btn-danger" id="btnBotDurdur" title="Botu Durdur (Ctrl+X)" disabled>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="4" y="4" width="16" height="16" rx="2"></rect></svg>
+                            <span class="sidebar-label">Durdur</span>
+                        </button>
+                    </div>
 
-                <div class="toolbar-separator"></div>
+                    <!-- ADA GÖREVLERİ -->
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-title">ADA GÖREVLERİ</div>
+                        <button class="sidebar-btn btn-primary" id="btnTara" title="Minyonları Tara (Ctrl+R)" disabled>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+                            <span class="sidebar-label">Minyonları Tara</span>
+                        </button>
+                        <button class="sidebar-btn btn-honey" id="btnKovanTara" title="Kovanları Tara (Ctrl+K)" disabled>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <span class="sidebar-label">Kovanları Tara</span>
+                        </button>
+                        <button class="sidebar-btn btn-honey-toggle active" id="btnToggleOtoBal" title="Otomatik Bal Toplama: %80 dolan kovanları otomatik toplayıp sandığa koyar">
+                            <span class="honey-pulse-dot"></span>
+                            <span class="sidebar-label">🍯 Oto Bal: <strong class="oto-bal-status">AÇIK</strong></span>
+                        </button>
+                        <button class="sidebar-btn btn-honey-outline" id="btnKovanTopla" title="Dolan (%80+) kovanların balını topla" disabled>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path></svg>
+                            <span class="sidebar-label">Balları Topla</span>
+                        </button>
+                        <button class="sidebar-btn btn-secondary" id="btnTopla" title="Minyonları Topla (Ctrl+T)" disabled style="display: none;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>
+                            <span class="sidebar-label">Tümünü Topla</span>
+                        </button>
+                        <button class="sidebar-btn btn-primary" id="btnEnvanterBosalt" title="Çantadaki tüm eşyaları hedef sandığa aktarır" disabled>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><polyline points="12 12 12 18 15 15"></polyline><line x1="12" y1="18" x2="9" y2="15"></line></svg>
+                            <span class="sidebar-label">Envanteri Boşalt</span>
+                        </button>
+                        <button class="sidebar-btn btn-secondary" id="btnSandik" disabled>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            <span class="sidebar-label">Sandığı Ayarla</span>
+                        </button>
+                    </div>
 
-                <!-- Minyon Bilgi Rozeti (Test modu butonları kaldırıldı, otomatik bilgi modu aktif) -->
-                <input type="checkbox" id="chkTestModu" style="display: none;" checked>
-                <div class="control-item" title="Minyonlar otomatik taranır ve canlı bilgileri okunur (Toplama devre dışı).">
-                    <span class="badge badge-cyan" style="font-size: 11px; padding: 3px 8px; display: flex; align-items: center; gap: 4px;">
-                        <span>ℹ️ Minyonlar: Bilgi Modu</span>
-                    </span>
-                </div>
-
-                <div class="toolbar-separator"></div>
-
-                <!-- Hedef Doluluk -->
-                <div class="control-item" title="Bu doluluk oranına ulaşan minyonlar toplanır.">
-                    <span class="control-label">Hedef Doluluk:</span>
-                    <div class="input-stepper">
-                        <input type="number" id="numHedefYuzde" min="10" max="100" step="5" value="80">
-                        <span class="stepper-unit">%</span>
+                    <!-- ARAÇLAR & YÖNETİM -->
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-title">YÖNETİM</div>
+                        <button class="sidebar-btn btn-subtle" id="btnProfiller" title="Bot Profilleri (Ctrl+P)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <span class="sidebar-label">Profiller</span>
+                        </button>
+                        <button class="sidebar-btn btn-subtle" id="btnSettings" title="Uygulama Ayarları (Ctrl+,)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                            <span class="sidebar-label">Ayarlar</span>
+                        </button>
+                        <button class="sidebar-btn btn-subtle" id="btnReleaseHistory" title="Sürüm Geçmişi & Güncellemeler">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"></path><circle cx="12" cy="12" r="9"></circle></svg>
+                            <span class="sidebar-label">Sürümler</span>
+                        </button>
+                        <button class="sidebar-btn btn-subtle" id="btnAdminRelease" title="Admin Sürüm Yönetim Paneli">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                            <span class="sidebar-label">Admin</span>
+                        </button>
+                        <button class="sidebar-btn btn-subtle" id="btnJsonAc" title="Minyon JSON (Ctrl+J)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                            <span class="sidebar-label">Minyon JSON</span>
+                        </button>
                     </div>
                 </div>
+            </aside>
 
-                <div class="toolbar-separator"></div>
+            <!-- 3. MAIN DASHBOARD CONTENT (ASYMMETRIC SPLIT: 64% / 36%) -->
+            <main class="dashboard-body">
+                <!-- LEFT PANE: MINIONS LIST -->
+                <section class="minions-pane">
+                    <div class="pane-header">
+                        <div class="pane-title-group">
+                            <div class="segmented-tabs" id="viewTabs">
+                                <button class="segmented-tab-btn active" id="tabMinyonlar" data-tab="minyonlar" type="button">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M14.531 12.469 6.619 20.38a1 1 0 1 1-3-3l7.912-7.912"></path>
+                                        <path d="M15.686 4.314A12.5 12.5 0 0 0 5.461 2.958 1 1 0 0 0 5.58 4.71a22 22 0 0 1 6.318 3.393"></path>
+                                        <path d="M17.7 3.7a1 1 0 0 0-1.4 0l-4.6 4.6a1 1 0 0 0 0 1.4l2.6 2.6a1 1 0 0 0 1.4 0l4.6-4.6a1 1 0 0 0 0-1.4Z"></path>
+                                    </svg>
+                                    <span>Minyonlar</span>
+                                    <span class="count-tag" id="minyonBadge">0</span>
+                                </button>
+                                <button class="segmented-tab-btn" id="tabKovanlar" data-tab="kovanlar" type="button">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                    <span>Kovanlar</span>
+                                    <span class="count-tag tag-honey" id="kovanBadge">0</span>
+                                </button>
+                                <button class="segmented-tab-btn" id="tabEnvanter" data-tab="envanter" type="button">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
+                                        <path d="M3 6h18"></path>
+                                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                                    </svg>
+                                    <span>Envanter</span>
+                                    <span class="count-tag tag-cyan" id="envanterBadge">0/36</span>
+                                </button>
+                                <button class="segmented-tab-btn" id="tabHasat" data-tab="hasat" type="button">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                                    </svg>
+                                    <span>Hasat Analitiği</span>
+                                    <span class="count-tag tag-purple" id="hasatBadge">0</span>
+                                </button>
+                            </div>
+                        </div>
 
-                <!-- Sıralama Dropdown -->
-                <div class="control-item" title="Minyon sıralama kriteri">
-                    <span class="control-label">Sırala:</span>
-                    <select class="sort-select" id="selectSirala">
-                        <option value="isim">İsim</option>
-                        <option value="doluluk">Doluluk</option>
-                        <option value="kademe">Kademe</option>
-                    </select>
-                </div>
-
-                <div class="toolbar-separator"></div>
-
-                <!-- JSON Görüntüle -->
-                <button class="btn btn-subtle" id="btnJsonAc" title="Minyon JSON (Ctrl+J)">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="16 18 22 12 16 6"></polyline>
-                        <polyline points="8 6 2 12 8 18"></polyline>
-                    </svg>
-                    <span>JSON</span>
-                </button>
-
-                <div class="toolbar-separator"></div>
-
-                <!-- Bot Profilleri -->
-                <button class="btn btn-subtle" id="btnProfiller" title="Bot Profilleri (Ctrl+P)">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    <span>Profiller</span>
-                </button>
-
-                <!-- Sürüm Geçmişi & Güncelleme -->
-                <button class="btn btn-subtle" id="btnReleaseHistory" title="Sürüm Geçmişi & Güncellemeler">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 8v4l3 3"></path>
-                        <circle cx="12" cy="12" r="9"></circle>
-                    </svg>
-                    <span>Sürümler</span>
-                </button>
-
-                <!-- Admin Paneli -->
-                <button class="btn btn-subtle" id="btnAdminRelease" title="Admin Sürüm Yönetim Paneli">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                    </svg>
-                    <span>Admin</span>
-                </button>
-
-                <!-- Ayarlar -->
-                <button class="btn btn-subtle" id="btnSettings" title="Uygulama Ayarları (Ctrl+,)">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                    </svg>
-                    <span>Ayarlar</span>
-                </button>
-            </div>
-        </section>
-
-        <!-- 3. MAIN DASHBOARD CONTENT (ASYMMETRIC SPLIT: 64% / 36%) -->
-        <main class="dashboard-body">
-            <!-- LEFT PANE: MINIONS LIST -->
-            <section class="minions-pane">
-                <div class="pane-header">
-                    <div class="pane-title-group">
-                        <div class="segmented-tabs" id="viewTabs">
-                            <button class="segmented-tab-btn active" id="tabMinyonlar" data-tab="minyonlar" type="button">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M14.531 12.469 6.619 20.38a1 1 0 1 1-3-3l7.912-7.912"></path>
-                                    <path d="M15.686 4.314A12.5 12.5 0 0 0 5.461 2.958 1 1 0 0 0 5.58 4.71a22 22 0 0 1 6.318 3.393"></path>
-                                    <path d="M17.7 3.7a1 1 0 0 0-1.4 0l-4.6 4.6a1 1 0 0 0 0 1.4l2.6 2.6a1 1 0 0 0 1.4 0l4.6-4.6a1 1 0 0 0 0-1.4Z"></path>
-                                </svg>
-                                <span>Minyonlar</span>
-                                <span class="count-tag" id="minyonBadge">0</span>
-                            </button>
-                            <button class="segmented-tab-btn" id="tabKovanlar" data-tab="kovanlar" type="button">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
-                                    <circle cx="12" cy="12" r="3"></circle>
-                                </svg>
-                                <span>Kovanlar</span>
-                                <span class="count-tag tag-honey" id="kovanBadge">0</span>
-                            </button>
-                            <button class="segmented-tab-btn" id="tabEnvanter" data-tab="envanter" type="button">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <!-- PANE FILTERS & CONTROLS -->
+                        <div class="pane-filters">
+                            <div class="stat-chip" title="Bu oturumda toplanan toplam eşya">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
                                     <path d="M3 6h18"></path>
                                     <path d="M16 10a4 4 0 0 1-8 0"></path>
                                 </svg>
-                                <span>Envanter</span>
-                                <span class="count-tag tag-cyan" id="envanterBadge">0/36</span>
-                            </button>
-                            <button class="segmented-tab-btn" id="tabHasat" data-tab="hasat" type="button">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                                <span id="toplamToplanan">0</span>
+                            </div>
+
+                            <div class="stat-chip" title="Ortalama doluluk yüzdesi">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"></path>
                                 </svg>
-                                <span>Hasat Analitiği</span>
-                                <span class="count-tag tag-purple" id="hasatBadge">0</span>
-                            </button>
+                                <span id="ortDoluluk">%0</span>
+                            </div>
+
+                            <input type="checkbox" id="chkTestModu" style="display: none;" checked>
+                            <div class="control-item" title="Minyonlar otomatik taranır ve canlı bilgileri okunur.">
+                                <span class="badge badge-cyan" style="font-size: 11px; padding: 3px 8px;">
+                                    <span>ℹ️ Bilgi Modu</span>
+                                </span>
+                            </div>
+
+                            <div class="control-item" title="Bu doluluk oranına ulaşan minyonlar toplanır.">
+                                <span class="control-label">Hedef:</span>
+                                <div class="input-stepper">
+                                    <input type="number" id="numHedefYuzde" min="10" max="100" step="5" value="80">
+                                    <span class="stepper-unit">%</span>
+                                </div>
+                            </div>
+
+                            <div class="control-item" title="Minyon sıralama kriteri">
+                                <select class="sort-select" id="selectSirala">
+                                    <option value="isim">Sırala: İsim</option>
+                                    <option value="doluluk">Sırala: Doluluk</option>
+                                    <option value="kademe">Sırala: Kademe</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="pane-meta">
@@ -646,7 +596,8 @@
                 </div>
             </section>
         </main>
-    </div>
+        </div> <!-- /.app-workspace -->
+    </div> <!-- /.app-container -->
 
     <!-- DISCONNECT OVERLAY -->
     <div class="disconnect-overlay" id="disconnectOverlay">
@@ -814,13 +765,6 @@
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
                         <span>+ Yeni Bot Hesabı</span>
                     </button>
-                    <button class="btn btn-secondary btn-sm" id="btnProfilExport" title="Profilleri JSON Olarak Dışa Aktar">
-                        <span>Dışa Aktar</span>
-                    </button>
-                    <button class="btn btn-secondary btn-sm" id="btnProfilImport" title="JSON Profil Dosyası İçe Aktar">
-                        <span>İçe Aktar</span>
-                    </button>
-                    <input type="file" id="inputProfilImportFile" accept=".json" style="display: none;">
                     <button class="modal-close-btn" id="btnProfilesKapat" aria-label="Kapat" title="Panele Geç">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
                     </button>
@@ -857,6 +801,13 @@
                 <div class="launcher-footer-left">
                     <button class="btn btn-subtle btn-sm" id="btnLauncherSettings"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Ayarlar</button>
                     <button class="btn btn-subtle btn-sm" id="btnLauncherReleases"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg> Sürümler</button>
+                    <button class="btn btn-subtle btn-sm" id="btnProfilExport" title="Profilleri JSON Olarak Dışa Aktar">
+                        <span>📤 Dışa Aktar</span>
+                    </button>
+                    <button class="btn btn-subtle btn-sm" id="btnProfilImport" title="JSON Profil Dosyası İçe Aktar">
+                        <span>📥 İçe Aktar</span>
+                    </button>
+                    <input type="file" id="inputProfilImportFile" accept=".json" style="display: none;">
                 </div>
                 <div class="launcher-footer-right">
                     <button class="btn btn-primary" id="btnLauncherContinue" style="padding: 6px 18px; font-size: 13px;">

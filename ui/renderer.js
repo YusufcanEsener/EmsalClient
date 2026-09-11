@@ -26,6 +26,20 @@ const elBtnEmptyKovanTara = document.getElementById('btnEmptyKovanTara')
 const elChkTestModu = document.getElementById('chkTestModu')
 const elNumHedefYuzde = document.getElementById('numHedefYuzde')
 
+// Sol Kenar Çubuğu (Collapsible Sidebar)
+const elAppSidebar = document.getElementById('appSidebar')
+const elBtnToggleSidebar = document.getElementById('btnToggleSidebar')
+if (elBtnToggleSidebar && elAppSidebar) {
+    const isSidebarCollapsed = localStorage.getItem('sidebar_collapsed') === 'true'
+    if (isSidebarCollapsed) {
+        elAppSidebar.classList.add('collapsed')
+    }
+    elBtnToggleSidebar.addEventListener('click', () => {
+        elAppSidebar.classList.toggle('collapsed')
+        localStorage.setItem('sidebar_collapsed', elAppSidebar.classList.contains('collapsed'))
+    })
+}
+
 // Multi-Bot DOM Elemanları
 const elBotSwitcherBar = document.getElementById('botSwitcherBar')
 const elBotChipsContainer = document.getElementById('botChipsContainer')
@@ -266,7 +280,7 @@ if (elBtnBotBaslat) {
     elBtnBotBaslat.addEventListener('click', async () => {
         elBtnBotBaslat.disabled = true
         const originalHTML = elBtnBotBaslat.innerHTML
-        elBtnBotBaslat.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg><span>Başlatılıyor...</span>`
+        elBtnBotBaslat.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg><span class="sidebar-label">Başlatılıyor...</span>`
 
         try {
             const sonuc = await window.electronAPI.botBaslat()
@@ -294,7 +308,7 @@ async function botuDurdur() {
     if (elBtnBotDurdur) elBtnBotDurdur.disabled = true
     const originalHTML = elBtnBotDurdur ? elBtnBotDurdur.innerHTML : ''
     if (elBtnBotDurdur) {
-        elBtnBotDurdur.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg><span>Durduruluyor...</span>`
+        elBtnBotDurdur.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg><span class="sidebar-label">Durduruluyor...</span>`
     }
 
     try {
@@ -306,7 +320,7 @@ async function botuDurdur() {
         elConnectionDot.className = 'status-indicator'
         if (elBtnBotBaslat) {
             elBtnBotBaslat.disabled = false
-            elBtnBotBaslat.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg><span>Başlat</span>`
+            elBtnBotBaslat.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg><span class="sidebar-label">Başlat</span>`
         }
         if (elBtnTara) elBtnTara.disabled = true
         if (elBtnTopla) elBtnTopla.disabled = true
@@ -316,7 +330,7 @@ async function botuDurdur() {
         showToast('Bot durdurma hatası: ' + err.message, 'error')
     } finally {
         if (elBtnBotDurdur) {
-            elBtnBotDurdur.innerHTML = originalHTML || `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="4" y="4" width="16" height="16" rx="2"></rect></svg><span>Durdur</span>`
+            elBtnBotDurdur.innerHTML = originalHTML || `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="4" y="4" width="16" height="16" rx="2"></rect></svg><span class="sidebar-label">Durdur</span>`
         }
     }
 }
@@ -343,11 +357,18 @@ function updateBotChips(botList) {
     botList.forEach(b => {
         let dotClass = ''
         let durumText = '○ Boşta'
-        if (b.isRunning) {
-            if (b.durum && (b.durum.includes('Atıldı') || b.durum.includes('Hata'))) {
+        const isRunning = Boolean(b.calisiyor || b.isRunning)
+        const durumStr = (b.durum || b.status || '').toString()
+        const isSunucuda = Boolean(b.sunucuda || b.adada || durumStr.includes('Skyblock') || durumStr.includes('Adada') || durumStr.includes('Lobi'))
+
+        if (isRunning) {
+            if (durumStr.includes('Atıldı') || durumStr.includes('Hata')) {
                 dotClass = 'error'
                 durumText = '⚠ Atıldı'
-            } else if (b.sunucuda) {
+            } else if (durumStr.includes('Lobi')) {
+                dotClass = 'connecting'
+                durumText = '● Lobi'
+            } else if (isSunucuda || durumStr.includes('Skyblock') || durumStr.includes('Adada') || durumStr.includes('Hazır') || durumStr.includes('Çalışıyor')) {
                 dotClass = 'running'
                 durumText = '● Skyblock'
             } else {
@@ -357,16 +378,16 @@ function updateBotChips(botList) {
         }
 
         const chip = document.createElement('div')
-        chip.className = `bot-chip ${b.isSelected ? 'active' : ''} ${b.isRunning ? 'running' : 'stopped'}`
+        chip.className = `bot-chip ${b.isSelected ? 'active' : ''} ${isRunning ? 'running' : 'stopped'}`
         chip.setAttribute('data-id', b.id)
-        chip.title = `${b.username} (${b.server}) - ${b.durum}`
+        chip.title = `${b.username} (${b.server}) - ${durumStr || (isRunning ? 'Çalışıyor' : 'Durduruldu')}`
 
         chip.innerHTML = `
             <span class="bot-chip-dot ${dotClass}"></span>
             <span class="bot-chip-name">${b.name}</span>
             <span class="bot-chip-status">${durumText}</span>
-            <button class="bot-chip-action ${b.isRunning ? 'stop' : 'start'}" data-id="${b.id}" title="${b.isRunning ? 'Botu Durdur' : 'Botu Başlat'}">
-                ${b.isRunning ? '⏹' : '▶'}
+            <button class="bot-chip-action ${isRunning ? 'stop' : 'start'}" data-id="${b.id}" title="${isRunning ? 'Botu Durdur' : 'Botu Başlat'}">
+                ${isRunning ? '⏹' : '▶'}
             </button>
         `
 
@@ -475,7 +496,7 @@ if (window.api && window.api.bot && typeof window.api.bot.list === 'function') {
 elBtnTara.addEventListener('click', async () => {
     elBtnTara.disabled = true
     const originalHTML = elBtnTara.innerHTML
-    elBtnTara.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg><span>Taranıyor...</span>`
+    elBtnTara.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg><span class="sidebar-label">Taranıyor...</span>`
 
     // Show skeleton cards during scan
     showSkeletonCards()
@@ -510,7 +531,7 @@ if (elBtnKovanTara) {
     elBtnKovanTara.addEventListener('click', async () => {
         elBtnKovanTara.disabled = true
         const originalHTML = elBtnKovanTara.innerHTML
-        elBtnKovanTara.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg><span>Taranıyor...</span>`
+        elBtnKovanTara.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg><span class="sidebar-label">Taranıyor...</span>`
 
         // Otomatik kovan sekmesine geç
         switchTab('kovanlar')
@@ -557,7 +578,7 @@ function otoBalArayuzGuncelle(aktif) {
         elBtnToggleOtoBal.classList.remove('disabled-mode')
         elBtnToggleOtoBal.innerHTML = `
             <span class="honey-pulse-dot"></span>
-            <span>🍯 Oto Bal: <strong class="oto-bal-status">AÇIK</strong></span>
+            <span class="sidebar-label">🍯 Oto Bal: <strong class="oto-bal-status">AÇIK</strong></span>
         `
         elBtnToggleOtoBal.title = "Otomatik Bal Toplama: AÇIK (%80 dolan kovanlar otomatik hasat edilip sandığa koyulur. Tıklayarak kapatabilirsiniz)"
     } else {
@@ -565,7 +586,7 @@ function otoBalArayuzGuncelle(aktif) {
         elBtnToggleOtoBal.classList.add('disabled-mode')
         elBtnToggleOtoBal.innerHTML = `
             <span class="honey-pulse-dot off"></span>
-            <span>🍯 Oto Bal: <strong class="oto-bal-status" style="color: var(--text-muted)">KAPALI</strong></span>
+            <span class="sidebar-label">🍯 Oto Bal: <strong class="oto-bal-status" style="color: var(--text-muted)">KAPALI</strong></span>
         `
         elBtnToggleOtoBal.title = "Otomatik Bal Toplama: KAPALI (Tıklayarak açabilirsiniz)"
     }
@@ -610,7 +631,7 @@ if (elBtnKovanTopla) {
     elBtnKovanTopla.addEventListener('click', async () => {
         elBtnKovanTopla.disabled = true
         const originalHTML = elBtnKovanTopla.innerHTML
-        elBtnKovanTopla.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg><span>Toplanıyor...</span>`
+        elBtnKovanTopla.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg><span class="sidebar-label">Toplanıyor...</span>`
 
         const hedef = parseInt(elNumHedefYuzde.value) || 80
         showToast(`%${hedef}+ doluluk oranındaki kovanların balı toplanıyor...`, 'info')
@@ -639,7 +660,7 @@ if (elBtnKovanTopla) {
 elBtnTopla.addEventListener('click', async () => {
     elBtnTopla.disabled = true
     const originalHTML = elBtnTopla.innerHTML
-    elBtnTopla.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg><span>Toplanıyor...</span>`
+    elBtnTopla.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin-icon"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg><span class="sidebar-label">Toplanıyor...</span>`
 
     try {
         await window.electronAPI.tumunuTopla()
@@ -672,7 +693,7 @@ if (elBtnEnvanterBosalt) {
     elBtnEnvanterBosalt.addEventListener('click', async () => {
         elBtnEnvanterBosalt.disabled = true
         const originalHTML = elBtnEnvanterBosalt.innerHTML
-        elBtnEnvanterBosalt.innerHTML = '<span>Boşaltılıyor...</span>'
+        elBtnEnvanterBosalt.innerHTML = '<span class="sidebar-label">Boşaltılıyor...</span>'
         showToast('Envanter sandığa aktarılıyor...', 'info', 3000)
         try {
             const sonuc = await (window.electronAPI.envanterBosalt ? window.electronAPI.envanterBosalt() : window.api.bot.envanterBosalt())

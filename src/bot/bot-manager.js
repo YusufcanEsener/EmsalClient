@@ -279,14 +279,19 @@ class BotManager extends EventEmitter {
         return profiles.map(p => {
             const inst = this.instances.get(p.id)
             const st = inst ? inst.durumAl() : null
+            const isRunning = Boolean(st && st.calisiyor)
+            const statusText = st ? st.durum : (p.meta?.status || 'Durduruldu')
             return {
                 id: p.id,
                 name: p.name,
                 username: p.username,
                 server: p.server,
-                status: st ? st.durum : (p.meta?.status || 'Durduruldu'),
-                calisiyor: Boolean(st && st.calisiyor),
+                status: statusText,
+                durum: statusText,
+                calisiyor: isRunning,
+                isRunning: isRunning,
                 adada: Boolean(st && st.adada),
+                sunucuda: Boolean(st && (st.sunucuda || st.adada || st.calisiyor)),
                 islemde: Boolean(st && st.islemde),
                 isSelected: p.id === this.selectedProfileId,
                 minyonCount: st?.minyonlar?._liste?.length || 0,
