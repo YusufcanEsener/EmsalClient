@@ -2190,6 +2190,8 @@ input:checked + .slider-sm:before {
     display: flex;
     align-items: center;
     gap: 8px;
+    white-space: nowrap;
+    flex-wrap: nowrap;
 }
 
 .launcher-app-title {
@@ -2443,6 +2445,35 @@ input:checked + .slider-sm:before {
     color: #cbd5e1;
     animation: devBadgeGlow 2.5s ease-in-out infinite alternate;
     user-select: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.launcher-dev-badge {
+    padding: 3px 9px !important;
+    font-size: 11px !important;
+    gap: 5px !important;
+    border-radius: 16px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    line-height: 1 !important;
+}
+
+.launcher-dev-badge .dev-badge-icon {
+    font-size: 12px !important;
+    line-height: 1 !important;
+}
+
+.launcher-dev-badge .dev-badge-text {
+    font-size: 10px !important;
+    letter-spacing: 0.4px !important;
+    white-space: nowrap !important;
+    line-height: 1 !important;
+}
+
+.launcher-dev-badge .dev-badge-name {
+    font-size: 11px !important;
+    white-space: nowrap !important;
 }
 
 @keyframes devBadgeGlow {
@@ -2478,6 +2509,7 @@ input:checked + .slider-sm:before {
     font-size: 11px;
     letter-spacing: 0.8px;
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .dev-badge-name {
@@ -2488,6 +2520,7 @@ input:checked + .slider-sm:before {
     text-transform: none;
     letter-spacing: 0.5px;
     text-shadow: 0 0 12px rgba(56, 189, 248, 0.9);
+    white-space: nowrap;
 }
 
 .splash-status-container {

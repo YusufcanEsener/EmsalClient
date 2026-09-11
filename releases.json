@@ -1,6 +1,26 @@
 {
   "releases": [
     {
+      "id": "rel-1-0-7",
+      "version": "1.0.7",
+      "title": "EmsalClient v1.0.7 — Sessiz Tek Tık Güncelleme (Riot Client Tarzı) & Rozet Hizalama Düzeltmesi",
+      "releaseType": "patch",
+      "releaseDate": "2026-09-11",
+      "status": "published",
+      "mandatory": false,
+      "channel": "stable",
+      "changes": [
+        {
+          "type": "feature",
+          "description": "Riot Client / Discord tarzı sessiz ve sihirbazsız tek tık güncelleme akışına geçildi (oneClick: true, isSilent: true); güncelleme arka planda 1-2 saniyede kurulup uygulama doğrudan otomatik açılır"
+        },
+        {
+          "type": "fix",
+          "description": "Geliştirici rozetinin (developer by: EmsalSiz) dar başlıklarda 3 satıra bölünerek bozulması sorunu düzeltildi; yatay hizalama ve nowrap güvencesi sağlandı"
+        }
+      ]
+    },
+    {
       "id": "rel-1-0-6",
       "version": "1.0.6",
       "title": "EmsalClient v1.0.6 — Akıllı Lobi & Skyblock Tespiti, Komut Hatası Kurtarma & Otomatik Yeniden Bağlanma",

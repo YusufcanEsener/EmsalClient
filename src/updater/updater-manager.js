@@ -260,8 +260,8 @@ class UpdaterManager extends EventEmitter {
         } catch (e) { }
 
         if (autoUpdater && isPackaged && this.status === 'downloaded') {
-            logger.info('UPDATER', 'Uygulama yeniden başlatılıyor ve güncelleme kuruluyor...')
-            autoUpdater.quitAndInstall(false, true)
+            logger.info('UPDATER', 'Uygulama yeniden başlatılıyor ve güncelleme kuruluyor (Sessiz mod)...')
+            autoUpdater.quitAndInstall(true, true)
         } else if (this.status === 'downloaded') {
             logger.info('UPDATER', 'Geliştirme modunda güncelleme kurulumu tamamlandı sayıldı.')
             this.status = 'idle'

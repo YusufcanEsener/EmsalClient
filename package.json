@@ -1,6 +1,6 @@
 {
   "name": "emsalclient",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "EmsalClient — Minecraft AFK & Ada Otomasyon İstemcisi",
   "main": "electron-main.js",
   "scripts": {
@@ -78,8 +78,9 @@
     },
     "nsis": {
       "artifactName": "${productName}-Setup-${version}.${ext}",
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
+      "oneClick": true,
+      "perMachine": false,
+      "allowElevation": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "EmsalClient"
