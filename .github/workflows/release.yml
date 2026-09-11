@@ -34,8 +34,8 @@ jobs:
       - name: Run Test Suite
         run: npm test
 
-      - name: Build and Publish Artifacts
-        run: npx electron-builder --win --x64 --publish always
+      - name: Build Artifacts
+        run: npx electron-builder --win --x64 --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -45,6 +45,10 @@ jobs:
         run: |
           if (Test-Path dist/latest.yml) {
             Copy-Item dist/latest.yml dist/stable.yml -Force
+          }
+          gh release view ${{ github.ref_name }} 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create ${{ github.ref_name }} --title "EmsalClient ${{ github.ref_name }}" --notes "EmsalClient ${{ github.ref_name }} Güncellemesi" --draft=false
           }
           $files = Get-ChildItem -Path dist -Include *.exe,*.yml,*.blockmap -File
           if ($files) {

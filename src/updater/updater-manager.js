@@ -42,12 +42,12 @@ class UpdaterManager extends EventEmitter {
                 this.currentVersion = electron.app.getVersion()
             } else {
                 const pkg = require('../../package.json')
-                this.currentVersion = pkg.version || '1.0.2'
+                this.currentVersion = pkg.version || '1.0.8'
             }
         } catch (e) {
             try {
                 const pkg = require('../../package.json')
-                this.currentVersion = pkg.version || '1.0.2'
+                this.currentVersion = pkg.version || '1.0.8'
             } catch (e2) { }
         }
 

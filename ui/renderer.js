@@ -2075,16 +2075,23 @@ function initProfessionalExtension() {
     const elSplashIcon = document.getElementById('splashIcon')
     const elSplashTitle = document.getElementById('splashTitle')
     const elSplashDesc = document.getElementById('splashDesc')
+    const elSplashStatusContainer = document.getElementById('splashStatusContainer')
     const elSplashUpdateDetails = document.getElementById('splashUpdateDetails')
+    const elSplashOldVersionBadge = document.getElementById('splashOldVersionBadge')
     const elSplashNewVersionBadge = document.getElementById('splashNewVersionBadge')
     const elSplashMandatoryBadge = document.getElementById('splashMandatoryBadge')
     const elSplashChannelBadge = document.getElementById('splashChannelBadge')
     const elSplashUpdateTitle = document.getElementById('splashUpdateTitle')
     const elSplashChangelogList = document.getElementById('splashChangelogList')
     const elSplashProgressBox = document.getElementById('splashProgressBox')
+    const elSplashProgressPhase = document.getElementById('splashProgressPhase')
+    const elSplashProgressPct = document.getElementById('splashProgressPct')
     const elSplashProgressFill = document.getElementById('splashProgressFill')
     const elSplashProgressText = document.getElementById('splashProgressText')
     const elSplashProgressSpeed = document.getElementById('splashProgressSpeed')
+    const elSplashApplyingBox = document.getElementById('splashApplyingBox')
+    const elSplashApplyingTitle = document.getElementById('splashApplyingTitle')
+    const elSplashApplyingDesc = document.getElementById('splashApplyingDesc')
     const elBtnSplashUpdateNow = document.getElementById('btnSplashUpdateNow')
     const elBtnSplashInstallNow = document.getElementById('btnSplashInstallNow')
     const elBtnSplashContinue = document.getElementById('btnSplashContinue')
@@ -2213,9 +2220,18 @@ function initProfessionalExtension() {
         if (elSplashModal) elSplashModal.classList.remove('active')
     }
 
+    function performInstallWithTransition() {
+        openSplash('applying')
+        setTimeout(() => {
+            api.updater.install()
+        }, 850)
+    }
+
     function updateSplashState(state, data = null) {
         if (!elSplashModal) return
 
+        if (elSplashApplyingBox) elSplashApplyingBox.classList.add('hidden')
+        if (elSplashStatusContainer) elSplashStatusContainer.style.display = 'flex'
         elSplashSpinner.style.display = 'none'
         elSplashIcon.classList.add('hidden')
         elSplashUpdateDetails.classList.add('hidden')
@@ -2224,6 +2240,13 @@ function initProfessionalExtension() {
         elBtnSplashInstallNow.style.display = 'none'
         elBtnSplashContinue.style.display = 'inline-flex'
         elBtnSplashRetry.style.display = 'none'
+
+        if (state === 'applying') {
+            if (elSplashStatusContainer) elSplashStatusContainer.style.display = 'none'
+            if (elSplashApplyingBox) elSplashApplyingBox.classList.remove('hidden')
+            elBtnSplashContinue.style.display = 'none'
+            return
+        }
 
         if (state === 'checking') {
             elSplashSpinner.style.display = 'block'
@@ -2244,14 +2267,15 @@ function initProfessionalExtension() {
             const info = data || {}
             elSplashTitle.textContent = 'Yeni Güncelleme Mevcut!'
             elSplashDesc.textContent = `v${currentAppVersion} → v${info.version || 'Yeni'}`
-            elSplashNewVersionBadge.textContent = `v${info.version}`
-            elSplashChannelBadge.textContent = info.channel === 'beta' ? 'Beta' : 'Kararlı'
+            if (elSplashOldVersionBadge) elSplashOldVersionBadge.textContent = `v${currentAppVersion}`
+            if (elSplashNewVersionBadge) elSplashNewVersionBadge.textContent = `v${info.version || 'Yeni'}`
+            if (elSplashChannelBadge) elSplashChannelBadge.textContent = info.channel === 'beta' ? 'Beta' : 'Kararlı'
             if (info.mandatory) {
-                elSplashMandatoryBadge.classList.remove('hidden')
+                if (elSplashMandatoryBadge) elSplashMandatoryBadge.classList.remove('hidden')
                 elBtnSplashContinue.style.display = 'none' // Zorunlu ise atlama yok
             }
 
-            if (info.title) elSplashUpdateTitle.textContent = info.title
+            if (info.title && elSplashUpdateTitle) elSplashUpdateTitle.textContent = info.title
             renderChangelogItems(elSplashChangelogList, info.changes || [], info.releaseNotes)
 
             elBtnSplashUpdateNow.style.display = 'inline-flex'
@@ -2260,17 +2284,29 @@ function initProfessionalExtension() {
                 if (elTopbarUpdateText) elTopbarUpdateText.textContent = `v${info.version} Mevcut`
             }
         } else if (state === 'downloading') {
-            elSplashTitle.textContent = 'Güncelleme İndiriliyor...'
-            elSplashDesc.textContent = 'Lütfen indirme işlemi tamamlanana kadar bekleyin'
+            elSplashTitle.textContent = 'İstemci Güncelleniyor...'
+            elSplashDesc.textContent = 'En son kararlı sürüm paketleri indiriliyor ve hazırlanıyor'
             elSplashProgressBox.classList.remove('hidden')
-            elBtnSplashContinue.style.display = 'none'
+            if (elSplashProgressPhase) elSplashProgressPhase.textContent = 'İstemci Dosyaları İndiriliyor...'
+            if (elBtnSplashContinue) {
+                elBtnSplashContinue.style.display = 'inline-flex'
+                const span = elBtnSplashContinue.querySelector('span')
+                if (span) span.textContent = 'Arka Planda Devam Et'
+            }
         } else if (state === 'downloaded') {
             elSplashIcon.classList.remove('hidden')
             elSplashIcon.textContent = '✓'
             elSplashIcon.style.color = '#22c55e'
-            elSplashTitle.textContent = 'Güncelleme Kuruluma Hazır!'
-            elSplashDesc.textContent = 'Yeni sürümü yüklemek için uygulamayı yeniden başlatın.'
+            elSplashTitle.textContent = 'Güncelleme Paketi Doğrulandı & Hazır!'
+            elSplashDesc.textContent = 'Yeni sürüm başarıyla indirildi. Yüklemek için uygulamayı yeniden başlatın.'
+            elSplashProgressBox.classList.remove('hidden')
+            if (elSplashProgressFill) elSplashProgressFill.style.width = '100%'
+            if (elSplashProgressPct) elSplashProgressPct.textContent = '%100'
+            if (elSplashProgressPhase) elSplashProgressPhase.textContent = 'Doğrulandı & Kuruluma Hazır'
+            if (elSplashProgressText) elSplashProgressText.textContent = 'Tüm dosyalar doğrulandı'
+            if (elSplashProgressSpeed) elSplashProgressSpeed.textContent = 'Tamamlandı'
             elBtnSplashInstallNow.style.display = 'inline-flex'
+            elBtnSplashContinue.style.display = 'none'
         } else if (state === 'error') {
             elSplashIcon.classList.remove('hidden')
             elSplashIcon.textContent = '⚠️'
@@ -2359,6 +2395,12 @@ function initProfessionalExtension() {
                 if (elLauncherNewVersionBadge) elLauncherNewVersionBadge.textContent = `v${info.version}`
                 if (elLauncherAlertTitle) elLauncherAlertTitle.textContent = info.title || 'Yeni sürüm yayınlandı!'
             }
+            if (elBtnLauncherUpdateNow) {
+                elBtnLauncherUpdateNow.onclick = () => {
+                    openSplash('available')
+                    api.updater.download()
+                }
+            }
         } else if (state.status === 'downloading') {
             if (elLauncherUpdateIcon) elLauncherUpdateIcon.textContent = '⏳'
             if (elLauncherUpdateText) elLauncherUpdateText.textContent = 'Güncelleme indiriliyor...'
@@ -2371,42 +2413,69 @@ function initProfessionalExtension() {
             if (elLauncherUpdateText) elLauncherUpdateText.textContent = 'Güncelleme hazır!'
             if (elBtnLauncherUpdateNow) {
                 elBtnLauncherUpdateNow.disabled = false
-                elBtnLauncherUpdateNow.className = 'btn btn-success btn-sm'
-                elBtnLauncherUpdateNow.innerHTML = '<span>Yeniden Başlat & Kur</span>'
-                elBtnLauncherUpdateNow.onclick = () => api.updater.install()
+                elBtnLauncherUpdateNow.className = 'btn btn-success btn-sm btn-pulse'
+                elBtnLauncherUpdateNow.innerHTML = '<span>🚀 Yeniden Başlat & Kur</span>'
+                elBtnLauncherUpdateNow.onclick = () => performInstallWithTransition()
             }
-        } else if (state.status === 'error') {
+        } else if (state === 'error') {
             if (elLauncherUpdateIcon) elLauncherUpdateIcon.textContent = '⚠️'
             if (elLauncherUpdateText) elLauncherUpdateText.textContent = 'Güncelleme sunucusuna bağlanılamadı (Çevrimdışı)'
             if (elBtnLauncherUpdateNow) {
                 elBtnLauncherUpdateNow.disabled = false
                 elBtnLauncherUpdateNow.innerHTML = '<span>Tekrar Dene</span>'
+                elBtnLauncherUpdateNow.onclick = () => api.updater.check()
             }
         }
     })
 
     api.updater.onProgress((progress) => {
-        if (elSplashProgressFill) elSplashProgressFill.style.width = `${progress.percent}%`
-        if (elSplashProgressText) elSplashProgressText.textContent = `İndiriliyor: %${progress.percent}`
-        if (elSplashProgressSpeed) {
-            const kb = Math.round((progress.bytesPerSecond || 0) / 1024)
-            elSplashProgressSpeed.textContent = `${kb} KB/s`
+        const pct = Math.min(100, Math.max(0, Math.round(progress.percent || 0)))
+        if (elSplashProgressFill) elSplashProgressFill.style.width = `${pct}%`
+        if (elSplashProgressPct) elSplashProgressPct.textContent = `%${pct}`
+        if (elSplashProgressPhase) {
+            elSplashProgressPhase.textContent = pct >= 100 ? 'Hazırlanıyor...' : 'İstemci Dosyaları İndiriliyor...'
         }
+
+        const transferredMB = progress.transferred ? (progress.transferred / 1048576).toFixed(1) : null
+        const totalMB = progress.total ? (progress.total / 1048576).toFixed(1) : null
+        if (elSplashProgressText) {
+            if (transferredMB && totalMB) {
+                elSplashProgressText.textContent = `İndirilen: ${transferredMB} MB / ${totalMB} MB`
+            } else {
+                elSplashProgressText.textContent = `İndiriliyor: %${pct}`
+            }
+        }
+
+        if (elSplashProgressSpeed) {
+            const bytesPerSec = progress.bytesPerSecond || 0
+            if (bytesPerSec >= 1048576) {
+                elSplashProgressSpeed.textContent = `${(bytesPerSec / 1048576).toFixed(1)} MB/s`
+            } else {
+                elSplashProgressSpeed.textContent = `${Math.round(bytesPerSec / 1024)} KB/s`
+            }
+        }
+
         if (elBtnLauncherUpdateNow && elBtnLauncherUpdateNow.disabled) {
-            elBtnLauncherUpdateNow.innerHTML = `<span>İndiriliyor %${progress.percent}</span>`
+            elBtnLauncherUpdateNow.innerHTML = `<span>İndiriliyor %${pct}</span>`
         }
     })
 
     // Splash Buton Olayları
-    if (elBtnSplashUpdateNow) elBtnSplashUpdateNow.onclick = () => api.updater.download()
-    if (elBtnSplashInstallNow) elBtnSplashInstallNow.onclick = () => api.updater.install()
+    if (elBtnSplashUpdateNow) elBtnSplashUpdateNow.onclick = () => {
+        updateSplashState('downloading')
+        api.updater.download()
+    }
+    if (elBtnSplashInstallNow) elBtnSplashInstallNow.onclick = () => performInstallWithTransition()
     if (elBtnSplashContinue) elBtnSplashContinue.onclick = () => closeSplash()
     if (elBtnSplashRetry) elBtnSplashRetry.onclick = () => api.updater.check()
     if (elTopbarUpdateBadge) elTopbarUpdateBadge.onclick = () => openSplash('available')
 
     // Launcher Buton Olayları
     if (elBtnLauncherContinue) elBtnLauncherContinue.onclick = () => closeModal(elProfilesModal)
-    if (elBtnLauncherUpdateNow) elBtnLauncherUpdateNow.onclick = () => api.updater.download()
+    if (elBtnLauncherUpdateNow) elBtnLauncherUpdateNow.onclick = () => {
+        openSplash('downloading')
+        api.updater.download()
+    }
     if (elBtnLauncherSettings) elBtnLauncherSettings.onclick = () => { loadSettings(); openModal(elSettingsModal); }
     if (elBtnLauncherReleases) elBtnLauncherReleases.onclick = () => { loadReleasesTimeline(); openModal(elReleasesModal); }
 

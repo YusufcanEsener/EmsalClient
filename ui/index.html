@@ -707,10 +707,10 @@
                     <img src="../assets/icon.png" width="48" height="48" class="splash-brand-logo" alt="EmsalClient Logo">
                     <div class="splash-brand-meta">
                         <h2>EmsalClient</h2>
-                        <span class="splash-version" id="splashCurrentVersion">v1.0.0</span>
+                        <span class="splash-version" id="splashCurrentVersion">v1.0.8</span>
                     </div>
                 </div>
-                <!-- GÖZE BATAN DEVELOPER BY: EMSALSIZ ROZETİ -->
+                <!-- DEVELOPER BY: EMSALSIZ ROZETİ -->
                 <div class="splash-developer-badge" id="splashDevBadge" title="EmsalClient Geliştiricisi">
                     <span class="dev-badge-icon">👑</span>
                     <span class="dev-badge-text">developer by: <strong class="dev-badge-name">EmsalSiz</strong></span>
@@ -718,7 +718,7 @@
             </div>
 
             <div class="splash-body" id="splashBody">
-                <div class="splash-status-container">
+                <div class="splash-status-container" id="splashStatusContainer">
                     <div class="splash-spinner" id="splashSpinner"></div>
                     <div class="splash-icon hidden" id="splashIcon"></div>
                     <div class="splash-title" id="splashTitle">Güncellemeler denetleniyor...</div>
@@ -728,35 +728,53 @@
                 <!-- Update Available Section -->
                 <div class="splash-update-details hidden" id="splashUpdateDetails">
                     <div class="splash-badge-row">
-                        <span class="badge badge-success" id="splashNewVersionBadge">Yeni: v1.0.1</span>
+                        <div class="splash-version-transition">
+                            <span class="badge badge-subtle" id="splashOldVersionBadge">v1.0.7</span>
+                            <span class="splash-version-arrow">➜</span>
+                            <span class="badge badge-success" id="splashNewVersionBadge">v1.0.8</span>
+                        </div>
                         <span class="badge badge-amber hidden" id="splashMandatoryBadge">Zorunlu Güncelleme</span>
                         <span class="badge badge-cyan" id="splashChannelBadge">Kararlı</span>
                     </div>
-                    <h4 id="splashUpdateTitle">Bug Fix & Performans Güncellemesi</h4>
+                    <h4 id="splashUpdateTitle">Yeni Sürüm Yayınlandı!</h4>
                     <div class="splash-changelog-box" id="splashChangelogList"></div>
                 </div>
 
-                <!-- Download Progress Bar -->
+                <!-- Download Progress Bar (Riot Client Tarzı) -->
                 <div class="splash-progress-container hidden" id="splashProgressBox">
+                    <div class="splash-progress-header">
+                        <span class="splash-progress-phase" id="splashProgressPhase">İstemci Dosyaları İndiriliyor...</span>
+                        <span class="splash-progress-pct" id="splashProgressPct">%0</span>
+                    </div>
                     <div class="splash-progress-bar">
                         <div class="splash-progress-fill" id="splashProgressFill" style="width: 0%;"></div>
                     </div>
                     <div class="splash-progress-labels">
-                        <span id="splashProgressText">İndiriliyor: %0</span>
+                        <span id="splashProgressText">İndirilen: 0 MB / 0 MB</span>
                         <span id="splashProgressSpeed">0 KB/s</span>
                     </div>
+                </div>
+
+                <!-- Güncelleme Uygulanıyor & Yeniden Başlatılıyor Geçiş Ekranı -->
+                <div class="splash-applying-container hidden" id="splashApplyingBox">
+                    <div class="splash-applying-spinner-wrapper">
+                        <div class="splash-applying-spinner"></div>
+                        <span class="splash-applying-icon">⚡</span>
+                    </div>
+                    <h3 class="splash-applying-title" id="splashApplyingTitle">Güncelleme Uygulanıyor...</h3>
+                    <p class="splash-applying-desc" id="splashApplyingDesc">Yeni sürüm dosyaları sisteme aktarılıyor. EmsalClient 1-2 saniye içinde yeni sürümüyle kendiliğinden tekrar açılacaktır. Lütfen bekleyin...</p>
                 </div>
             </div>
 
             <div class="splash-actions" id="splashActions">
                 <button class="btn btn-primary" id="btnSplashUpdateNow" style="display: none;">
-                    <span>Güncellemeyi İndir</span>
+                    <span>⚡ Güncellemeyi İndir</span>
                 </button>
-                <button class="btn btn-success" id="btnSplashInstallNow" style="display: none;">
-                    <span>Yeniden Başlat & Kur</span>
+                <button class="btn btn-success btn-pulse" id="btnSplashInstallNow" style="display: none;">
+                    <span>🚀 Yeniden Başlat ve Güncelle</span>
                 </button>
                 <button class="btn btn-secondary" id="btnSplashContinue">
-                    <span>Uygulamaya Devam Et</span>
+                    <span>Arka Planda Devam Et</span>
                 </button>
                 <button class="btn btn-subtle" id="btnSplashRetry" style="display: none;">
                     <span>Tekrar Dene</span>
