@@ -445,11 +445,15 @@ class BotManager extends EventEmitter {
     }
 
     mesajGonder(mesaj, profileId = null) {
-        const { instance } = this._getTargetInstance(profileId)
-        if (typeof instance.mesajGonder === 'function') {
-            return instance.mesajGonder(mesaj)
+        try {
+            const { instance } = this._getTargetInstance(profileId)
+            if (typeof instance.mesajGonder === 'function') {
+                return instance.mesajGonder(mesaj)
+            }
+            return { basarili: false, mesaj: 'Bu bot mesaj göndermeyi desteklemiyor.' }
+        } catch (err) {
+            return { basarili: false, mesaj: err.message || 'Seçili bir bot bulunamadı.' }
         }
-        return { basarili: false, mesaj: 'Bu bot mesaj göndermeyi desteklemiyor.' }
     }
 }
 

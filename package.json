@@ -1,6 +1,6 @@
 {
   "name": "emsalclient",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "EmsalClient — Minecraft AFK & Ada Otomasyon İstemcisi",
   "main": "electron-main.js",
   "scripts": {

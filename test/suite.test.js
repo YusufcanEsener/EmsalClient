@@ -277,6 +277,12 @@ it('Should expose and handle mesajGonder gracefully when offline or invalid', ()
 
     const resMgrOffline = botManager.mesajGonder('/is')
     assert.strictEqual(resMgrOffline.basarili, false)
+
+    const prevId = botManager.selectedProfileId
+    botManager.selectedProfileId = null
+    const resNoBot = botManager.mesajGonder('/is', null)
+    assert.strictEqual(resNoBot.basarili, false)
+    botManager.selectedProfileId = prevId
 })
 
 console.log('\n====================================================')
