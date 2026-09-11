@@ -50,7 +50,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) {
             gh release create ${{ github.ref_name }} --title "EmsalClient ${{ github.ref_name }}" --notes "EmsalClient ${{ github.ref_name }} Güncellemesi" --draft=false
           }
-          $files = Get-ChildItem -Path dist -Include *.exe,*.yml,*.blockmap -File
+          $files = Get-ChildItem -Path "dist/*" -Include *.exe,*.yml,*.blockmap -File
           if ($files) {
             gh release upload ${{ github.ref_name }} $files.FullName --clobber
           }
