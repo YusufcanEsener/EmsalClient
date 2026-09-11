@@ -2239,8 +2239,32 @@ function createBot() {
             /(?:❤|⚗|🔥|⛁)/.test(msg)
 
         // Sadece oyuncu sohbetlerini ve HUD spamlarını filtrele, gerçek sunucu bildirimlerini göster
-        const oyuncuMesaji = msg.includes('»') || msg.toLowerCase().includes('ihale') || msg.includes('SİPARİŞ') || msg.startsWith('[Sv.')
-        if (!isHudMesaji && (!oyuncuMesaji || AYARLAR.SOHBET_MESAJLARINI_GOSTER)) {
+        const oyuncuMesaji =
+            msg.includes('»') ||
+            msg.includes('->') ||
+            /^<[^>]+>/.test(msg.trim()) ||
+            /^[\[\(]?[A-Za-z0-9_]{3,16}[\]\)]?\s*:\s+/.test(msg.trim()) ||
+            msg.startsWith('[Sv.') ||
+            msg.startsWith('[Lvl') ||
+            msg.startsWith('[VIP') ||
+            msg.startsWith('[Oyuncu') ||
+            msg.startsWith('[Medya') ||
+            msg.startsWith('[Rehber') ||
+            msg.startsWith('[Mod') ||
+            msg.startsWith('[Yönetici') ||
+            msg.startsWith('[Admin') ||
+            msg.startsWith('[Kurucu') ||
+            temizMsg.includes('ihale') ||
+            msg.includes('SİPARİŞ')
+
+        if (oyuncuMesaji) {
+            if (AYARLAR.SOHBET_MESAJLARINI_GOSTER) {
+                console.log(`[SOHBET] ${msg}`)
+            }
+            return // Oyuncu sohbetleri kesinlikle sunucu kontrolü veya lobiye düşme tetiklemez!
+        }
+
+        if (!isHudMesaji) {
             console.log(`[SUNUCU] ${msg}`)
         }
 
@@ -2287,7 +2311,7 @@ function createBot() {
             return
         }
 
-        // 5b. Lobi PvP Arenası ölüm mesajları algılanırsa (Adada PvP veya genel ölüm anonsu olmaz)
+        // 5b. Lobi PvP Arenası ölüm mesajları algılanırsa (Sadece scoreboard da lobi olduğunu onaylıyorsa)
         const lobiPvpMesaji =
             temizMsg.includes('adli oyuncuyu oldurdu') ||
             temizMsg.includes('adli oyuncuyu öldürdü') ||
@@ -2297,20 +2321,12 @@ function createBot() {
             temizMsg.includes('adli oyuncuyu vurdu')
 
         if (lobiPvpMesaji && (inSkyblock || adada)) {
-            console.log(`[UYARI] Lobi PvP arenası mesajı algılandı ("${msg}")! Bot lobide bulunuyor.`)
-            lobiyeDusuldu('Lobi PvP Arenası Ölüm Mesajı Algılandı')
-            return
-        }
-
-        // 5c. Lobi genel duyuru / discord mesajları
-        const lobiDuyuru =
-            temizMsg.includes('discord.gg/aesirdc') ||
-            (temizMsg.includes('aesirdc') && !temizMsg.includes('skyblock'))
-
-        if (lobiDuyuru && (inSkyblock || adada)) {
-            console.log(`[UYARI] Lobi genel duyurusu algılandı ("${msg}")! Bot lobide bulunuyor.`)
-            lobiyeDusuldu('Lobi Genel Duyurusu Algılandı')
-            return
+            const anlikKonum = sunucuKonumunuTespitEt()
+            if (anlikKonum === 'Lobide') {
+                console.log(`[UYARI] Lobi PvP arenası mesajı algılandı ("${msg}")! Bot lobide bulunuyor.`)
+                lobiyeDusuldu('Lobi PvP Arenası Ölüm Mesajı Algılandı')
+                return
+            }
         }
 
         // 6. Adaya aktarılamadı (unable to connect, sunucu dolu, vb.) mesajı gelirse tekrar /is go dene

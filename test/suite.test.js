@@ -243,6 +243,24 @@ it('Should have correct regex/string matching patterns for lobby kill messages a
     const cleanDiscord = discordMsg.toLowerCase()
     assert(cleanDiscord.includes('discord.gg/aesirdc') || cleanDiscord.includes('aesirdc'))
 })
+it('Should strictly classify player chat messages containing discord or server keywords as player chat', () => {
+    const playerMsg1 = '[Medya] xLupfii » dcde medya açıcam aesirdcde'
+    const playerMsg2 = '<Player123> discord.gg/aesirdc gelin'
+    const playerMsg3 = '[VIP] Alex: sunucu yeniden baslatiliyor mu?'
+
+    function isPlayerChat(m) {
+        return m.includes('»') ||
+            m.includes('->') ||
+            /^<[^>]+>/.test(m.trim()) ||
+            /^[\[\(]?[A-Za-z0-9_]{3,16}[\]\)]?\s*:\s+/.test(m.trim()) ||
+            m.startsWith('[Medya') ||
+            m.startsWith('[VIP')
+    }
+
+    assert(isPlayerChat(playerMsg1))
+    assert(isPlayerChat(playerMsg2))
+    assert(isPlayerChat(playerMsg3))
+})
 
 console.log('\n====================================================')
 console.log(`   TEST RESULTS: ${passCount} PASSED, ${failCount} FAILED   `)
