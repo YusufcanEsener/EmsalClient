@@ -317,10 +317,9 @@ class ReleaseManager {
                 const parsed = JSON.parse(rawJson)
                 if (parsed && Array.isArray(parsed.releases)) {
                     this.mergeRemoteReleases(parsed.releases)
-                    return this.getAll()
                 }
             } catch (e1) {
-                logger.warn('RELEASES', 'Raw releases.json alınamadı, GitHub API deneniyor: ' + e1.message)
+                logger.warn('RELEASES', 'Raw releases.json alınamadı: ' + e1.message)
             }
 
             // 2. Fallback: GitHub Releases API

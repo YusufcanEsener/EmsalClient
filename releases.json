@@ -1,6 +1,150 @@
 {
   "releases": [
     {
+      "id": "rel-1-0-14",
+      "version": "1.0.14",
+      "title": "EmsalClient v1.0.14 — Terminal Canlı Sohbet & Komut Gönderme Sistemi",
+      "releaseType": "patch",
+      "releaseDate": "2026-09-11",
+      "status": "published",
+      "mandatory": false,
+      "channel": "stable",
+      "changes": [
+        {
+          "type": "feature",
+          "description": "Bot Terminali üzerinden canlı Minecraft komutları (/is, /spawn, /minyon vb.) ve ada sohbet mesajı gönderme çubuğu eklendi"
+        },
+        {
+          "type": "feature",
+          "description": "Shell/konsol tarzı Yukarı Ok (↑) ve Aşağı Ok (↓) tuşlarıyla önceki son 50 mesaj arasında hızlı gezinme (Command History) sağlandı"
+        },
+        {
+          "type": "fix",
+          "description": "Arayüzdeki aktifSeciliBotId ReferenceError hatası ve main.js bot.entity soket engeli tamamen giderildi"
+        }
+      ]
+    },
+    {
+      "id": "rel-1-0-13",
+      "version": "1.0.13",
+      "title": "EmsalClient v1.0.13 — Güvenli Bot Seçimi & Mesaj Dağıtım İyileştirmesi",
+      "releaseType": "patch",
+      "releaseDate": "2026-09-11",
+      "status": "published",
+      "mandatory": false,
+      "channel": "stable",
+      "changes": [
+        {
+          "type": "fix",
+          "description": "Seçili bot olmaması veya henüz başlatılmamış olması durumunda mesaj gönderme fonksiyonunun güvenli hata dönmesi sağlandı"
+        }
+      ]
+    },
+    {
+      "id": "rel-1-0-12",
+      "version": "1.0.12",
+      "title": "EmsalClient v1.0.12 — İnteraktif Sohbet Çubuğu & Terminal Geçmişi",
+      "releaseType": "minor",
+      "releaseDate": "2026-09-11",
+      "status": "published",
+      "mandatory": false,
+      "channel": "stable",
+      "changes": [
+        {
+          "type": "feature",
+          "description": "Terminal altına gömülü Minecraft komut ve sohbet gönderme çubuğu eklendi"
+        },
+        {
+          "type": "feature",
+          "description": "Gönderilen komutların terminalde anlık olarak [KOMUT] etiketiyle listelenmesi sağlandı"
+        }
+      ]
+    },
+    {
+      "id": "rel-1-0-11",
+      "version": "1.0.11",
+      "title": "EmsalClient v1.0.11 — UI Yerleşim Düzeltmesi & Sol Menü Kaydırma İyileştirmesi",
+      "releaseType": "patch",
+      "releaseDate": "2026-09-11",
+      "status": "published",
+      "mandatory": false,
+      "channel": "stable",
+      "changes": [
+        {
+          "type": "fix",
+          "description": "HTML etiket eşleşmesi düzeltilerek Bot Terminali'nin alta düşmesi engellendi; %62 Minyonlar / %38 Terminal iki sütunlu grid düzenine kavuşturuldu"
+        },
+        {
+          "type": "improvement",
+          "description": "Sol menüye (sidebar) min-height: 0 ve özel kaydırma çubuğu eklenerek düşük çözünürlüklerde Yönetim butonlarının görünmesi sağlandı"
+        }
+      ]
+    },
+    {
+      "id": "rel-1-0-10",
+      "version": "1.0.10",
+      "title": "EmsalClient v1.0.10 — Oyuncu Sohbeti İzolasyonu & Hatalı Lobi Tespiti Düzeltmesi",
+      "releaseType": "patch",
+      "releaseDate": "2026-09-11",
+      "status": "published",
+      "mandatory": false,
+      "channel": "stable",
+      "changes": [
+        {
+          "type": "fix",
+          "description": "Oyuncuların sohbete yazdığı discord/lobi mesajlarının bot tarafından genel sunucu anonsu sanılıp adadan ayrılma hatası vermesi engellendi"
+        },
+        {
+          "type": "fix",
+          "description": "Hatalı lobiDuyuru kontrolü kaldırıldı; oyuncu sohbetleri anında izole edilerek işlemden çıkarıldı"
+        }
+      ]
+    },
+    {
+      "id": "rel-1-0-9",
+      "version": "1.0.9",
+      "title": "EmsalClient v1.0.9 — Açılır/Kapanır Sol Menü & Canlı Bot Çip Durum Düzeltmesi",
+      "releaseType": "minor",
+      "releaseDate": "2026-09-11",
+      "status": "published",
+      "mandatory": false,
+      "channel": "stable",
+      "changes": [
+        {
+          "type": "feature",
+          "description": "Açılır/kapanır (collapsible) dikey sol kenar çubuğu eklendi; tek tıkla 185px'den 52px simge moduna daraltılabilir"
+        },
+        {
+          "type": "fix",
+          "description": "Bot açıkken üst çipte hatalı şekilde 'Boşta' görünmesi sorunu çözüldü; Skyblock / Lobi / Bağlanıyor durumları canlı senkronize edildi"
+        },
+        {
+          "type": "improvement",
+          "description": "Profiller modalı 950px genişliğe çıkarıldı ve buton düzeni ferahlatıldı"
+        }
+      ]
+    },
+    {
+      "id": "rel-1-0-8",
+      "version": "1.0.8",
+      "title": "EmsalClient v1.0.8 — Riot Client Tarzı İstemci İçi Güncelleme Merkezi",
+      "releaseType": "patch",
+      "releaseDate": "2026-09-11",
+      "status": "published",
+      "mandatory": false,
+      "channel": "stable",
+      "changes": [
+        {
+          "type": "feature",
+          "description": "Uygulama içi Riot Client tarzı canlı güncelleme merkezi eklendi (canlı yüzde, transfer boyutu ve indirme hızı)"
+        },
+        {
+          "type": "feature",
+          "description": "'Güncelleme Uygulanıyor...' geçiş animasyonu ve ekransız 1 saniyede sessiz yeni sürüme geçiş akışı kuruldu"
+        }
+      ]
+    },
+    {
       "id": "rel-1-0-7",
       "version": "1.0.7",
       "title": "EmsalClient v1.0.7 — Sessiz Tek Tık Güncelleme (Riot Client Tarzı) & Rozet Hizalama Düzeltmesi",

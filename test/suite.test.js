@@ -146,7 +146,7 @@ it('Should validate SemVer and require title and changes', () => {
     assert(invalid2.errors.some(e => e.includes('başlığı')))
 
     const valid = releaseManager.validate({
-        version: '1.0.9',
+        version: '9.9.9',
         title: 'Valid Sürüm',
         changes: [{ type: 'feature', description: 'Yeni özellik' }]
     })
